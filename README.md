@@ -33,14 +33,14 @@ Es soll Studierenden, Entwicklern und Ingenieuren als Inspiration dienen, wie ma
 ## 🧩 Systemarchitektur
 
 ```text
-+-----------------------+               +-----------------------+
-|   On-Board Computer   |               |    Bodenstation       |
-|  (Raspberry Pi 4)     |               |   (Laptop / Server)   |
-|-----------------------|               |-----------------------|
-| BME280 Sensor (I²C)   |── Telemetrie →│ MQTT / HTTP Receiver  |
-| Datenlogger (CSV)     |               | Signatur-Verifikation  |
-| HMAC-Signierung       |← Befehle ──   │ Visualisierung / Logs |
-+-----------------------+               +-----------------------+
++-----------------------+             +-----------------------+
+|   On-Board Computer   |             |     Bodenstation      |
+|    (Raspberry Pi 4)   |             |    (Laptop / Server)  |
+|-----------------------|             |-----------------------|
+| BME280 Sensor (I²C)   |── Telemetrie → MQTT / HTTP Receiver |
+| Datenlogger (CSV)     |             | Signatur-Verifikation  |
+| HMAC-Signierung       |← Befehle ───│ Visualisierung / Logs |
++-----------------------+             +-----------------------+
 ```
 ---
 
@@ -89,12 +89,13 @@ cd CubeSat-Security-Simulator
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-
+```
 ---
 
 ## 👨‍🚀 Autor
+
 **Oleg Skydan**
-Student · Wirtschaftsinformatik · Fachschule Wiesau
-Interessen: Space Tech · Cybersecurity · IoT-Systeme
+*Student · Wirtschaftsinformatik · Fachschule Wiesau*
+**Interessen:** Space Tech · Cybersecurity · IoT-Systeme
 
 💡 *„Jede große Mission beginnt klein – manchmal auf einem Breadboard.“*
