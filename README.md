@@ -99,3 +99,29 @@ pip install -r requirements.txt
 **Interessen:** Space Tech · Cybersecurity · IoT-Systeme
 
 💡 *„Jede große Mission beginnt klein – manchmal auf einem Breadboard.“*
+
+---
+
+## 🗓️ Mission Timeline
+
+| Phase | Status | Description |
+|--------|---------|-------------|
+| 🧭 **Pre-Launch Setup** | ✅ Completed | Repository initialized, Python environment created, project structure defined. |
+| 🛰️ **System Architecture Build** | ✅ Completed | OBC and Ground Station modules implemented, telemetry flow verified. |
+| 📊 **Telemetry Visualization** | ✅ Completed | CSV data logging and real-time plotting functional. |
+| 🔐 **Security Layer Integration** | 🚧 In Progress | Implementing HMAC-SHA256 data signing and verification. |
+| 🌐 **Live Data Link (Raspberry → Ground)** | ⏳ Planned | Establish real MQTT/HTTP communication channel. |
+| 🚀 **Mission Control Dashboard** | ⏳ Planned | Streamlit interface for monitoring telemetry and events. |
+
+---
+
+## 🧭 Mission Log
+
+| Date       | Phase / Update | Summary |
+|-------------|----------------|----------|
+| **2025-11-03** | 🛰️ *Pre-Launch Complete* | Initial repository structure established. On-Board Computer (OBC) and Ground Station modules implemented. Basic telemetry simulation and real-time plotting verified. |
+| **2025-11-03** | 🧩 *Mission Documentation* | README structured with system architecture, technology stack, and installation guide. Mission Log initialized for ongoing development tracking. |
+
+---
+
+📡 *Next Phase:* Integration of live BME280 sensor data and secure HMAC transmission from Raspberry Pi → Ground Station.
