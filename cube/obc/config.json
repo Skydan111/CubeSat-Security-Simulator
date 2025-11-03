@@ -1,0 +1,6 @@
+{
+  "mode": "simulate",
+  "csv_path": "cube/data/telemetry.csv",
+  "sample_interval_sec": 60,
+  "secret_hex": "00112233445566778899aabbccddeeff"
+}

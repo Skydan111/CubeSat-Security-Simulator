@@ -10,6 +10,6 @@ __pycache__/
 .vscode/
 .idea/
 
-# (по желанию)
-data/
+# Data/Logs
+cube/data/
 logs/
