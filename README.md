@@ -38,7 +38,7 @@ Es soll Studierenden, Entwicklern und Ingenieuren als Inspiration dienen, wie ma
 |    (Raspberry Pi 4)   |             |    (Laptop / Server)  |
 |-----------------------|             |-----------------------|
 | BME280 Sensor (I²C)   |── Telemetrie → MQTT / HTTP Receiver |
-| Datenlogger (CSV)     |             | Signatur-Verifikation  |
+| Datenlogger (CSV)     |             | Signatur-Verifikation |
 | HMAC-Signierung       |← Befehle ───│ Visualisierung / Logs |
 +-----------------------+             +-----------------------+
 ```
