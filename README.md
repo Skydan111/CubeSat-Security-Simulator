@@ -33,15 +33,15 @@ Es soll Studierenden, Entwicklern und Ingenieuren als Inspiration dienen, wie ma
 ## 🧩 Systemarchitektur
 
 ```text
-+-----------------------+             +-----------------------+
-|   On-Board Computer   |             |    Bodenstation       |
-|  (Raspberry Pi 4)     |             |   (Laptop / Server)   |
-|-----------------------|             |-----------------------|
++-----------------------+               +-----------------------+
+|   On-Board Computer   |               |    Bodenstation       |
+|  (Raspberry Pi 4)     |               |   (Laptop / Server)   |
+|-----------------------|               |-----------------------|
 | BME280 Sensor (I²C)   |── Telemetrie →│ MQTT / HTTP Receiver  |
-| Datenlogger (CSV)     |             | Signatur-Verifikation |
-| HMAC-Signierung       |← Befehle ───│ Visualisierung / Logs  |
-+-----------------------+             +-----------------------+
-
+| Datenlogger (CSV)     |               | Signatur-Verifikation  |
+| HMAC-Signierung       |← Befehle ──   │ Visualisierung / Logs |
++-----------------------+               +-----------------------+
+```
 ---
 
 ## 🔐 Sicherheits­ebene
@@ -79,7 +79,7 @@ cube/
 │   ├── architecture.png
 │   └── mission_report.md
 └── README.md
-
+```
 ---
 
 ## ⚙️ Installation
