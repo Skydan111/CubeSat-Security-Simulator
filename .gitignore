@@ -13,3 +13,6 @@ __pycache__/
 # Data/Logs
 cube/data/
 logs/
+
+# Local media archive
+docs/hardware/
