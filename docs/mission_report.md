@@ -110,5 +110,7 @@ All components have been received in perfect condition.
 Below are local reference images from the inspection phase (stored offline for repository optimization):
 
 📦 [01_kit_overview.jpg — Kit Overview](hardware/01_kit_overview.jpg)
+
 🔌 [02_breadboard_set.jpg — Breadboard Set](hardware/02_breadboard_set.jpg)
+
 🧠 [03_raspberry_unboxing.jpg — Raspberry Pi Unboxing](hardware/03_raspberry_unboxing.jpg)
