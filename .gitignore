@@ -3,14 +3,19 @@ venv/
 __pycache__/
 *.pyc
 
-# macOS
+# macOS-Systemdateien
 .DS_Store
 
-# IDE
+# IDE / Editor-Konfigurationen
 .vscode/
 .idea/
 
-# Data folders (mission data not versioned)
+# Lokale virtuelle Umgebungen
+# (werden automatisch pro Gerät erstellt, nicht versioniert)
+env/
+.venv/
+
+# Missionsdaten (nicht versionieren)
 data/raw/
 data/processed/
 data/reports/
@@ -19,8 +24,16 @@ data/rejected/
 *.zip
 *.7z
 
-# Логи
+# Log-Dateien
 *.log
 
-# Local media archive
+# Lokale Medien oder Hardware-Bilder
 docs/hardware/
+
+# Bodenstation (Ground)
+# Enthält geheime Schlüssel / lokale Konfigs
+cube/ground/config/*.json
+
+# Bordcomputer (OBC – Raspberry Pi)
+# Enthält Missionskonfigs und Schlüssel
+obc/config/*.json
