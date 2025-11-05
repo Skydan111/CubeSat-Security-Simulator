@@ -1,8 +1,23 @@
 # 🛰️ CubeSat Security Simulator
 
-> **Mission Phase:** 🟢 Pre-Launch
-> **Status:** Initial Setup
-> **Last Update:** 2025-11-03
+> **Mission Phase:** 🛰️ System Integration
+> **Status:** 🧩 Hardware Deployment in Progress
+> **Last Update:** 2025-11-05
+
+## 📘 Inhaltsverzeichnis
+- [🚀 Missionsübersicht](#-missionsübersicht)
+- [🌌 Motivation & Vision](#-motivation--vision)
+- [🎯 Missionsziele](#-missionsziele)
+- [🧩 Systemarchitektur](#-systemarchitektur)
+- [🔐 Sicherheitsebene](#-sicherheitsebene)
+- [🧠 Technologien](#-technologien)
+- [📦 Projektstruktur](#-projektstruktur)
+- [⚙️ Installation](#️-installation)
+- [👨‍🚀 Autor](#-autor)
+- [🗓️ Mission Timeline](#️-mission-timeline)
+- [🧭 Mission Log](#-mission-log)
+- [📂 Datenstruktur (Bodenstation)](#-datenstruktur-bodenstation)
+
 
 ## 🚀 Missionsübersicht
 **CubeSat Security Simulator** ist eine Lern- und Forschungsplattform, die die Architektur eines Mini-Satelliten (CubeSat) mit Fokus auf **Telemetrie und Cybersicherheit** simuliert.
@@ -66,19 +81,35 @@ Es soll Studierenden, Entwicklern und Ingenieuren als Inspiration dienen, wie ma
 ## 📦 Projektstruktur
 
 ```text
-cube/
-├── obc/                # Bordcomputer
-│   ├── bme_log.py      # Erfassung der Telemetrie
-│   ├── hmac_sign.py    # Daten-Signierung
-│   └── config.json
-├── ground/             # Bodenstation
-│   ├── receiver.py
-│   ├── verify.py
-│   └── plot.py
-├── docs/               # Dokumentation & Schaubilder
-│   ├── architecture.png
-│   └── mission_report.md
-└── README.md
+CubeSat/
+├── cube/                      # Hauptprojekt: Code und Dokumentation
+│   ├── obc/                   # On-Board Computer (Raspberry Pi)
+│   │   ├── bme_log.py         # Erfassung der Sensordaten (BME280)
+│   │   ├── hmac_sign.py       # HMAC-Signierung der Telemetrie
+│   │   └── config.json        # Gerätekonfiguration (Keys, Sensor-ID, etc.)
+│   │
+│   ├── ground/                # Bodenstation (Laptop / Server)
+│   │   ├── receiver.py        # Empfang von Telemetriedaten
+│   │   ├── verify.py          # Signaturprüfung der Datensätze
+│   │   └── plot.py            # Visualisierung & Diagramme
+│   │
+│   └── docs/                  # Missionsdokumentation & Architektur
+│       ├── architecture.png
+│       ├── mission_report_1.md
+│       ├── mission_report_2.md
+│       └── hardware/          # lokale Fotos, nicht versioniert (.gitignore)
+│
+├── data/                      # Missionsdaten (nicht versioniert)
+│   ├── raw/                   # unbearbeitete Daten direkt vom OBC
+│   ├── processed/             # validierte & bereinigte Datensätze
+│   ├── reports/               # Berichte, Diagramme, Auswertungen
+│   ├── archive/               # ältere archivierte Datensätze (ZIP)
+│   └── rejected/              # ungültige Datensätze (Signaturfehler)
+│
+├── venv/                      # Virtuelle Python-Umgebung
+├── .gitignore
+├── README.md
+└── requirements.txt
 ```
 ---
 
@@ -121,6 +152,92 @@ pip install -r requirements.txt
 |-------------|----------------|----------|
 | **2025-11-03** | 🛰️ *Pre-Launch Complete* | Initial repository structure established. On-Board Computer (OBC) and Ground Station modules implemented. Basic telemetry simulation and real-time plotting verified. |
 | **2025-11-03** | 🧩 *Mission Documentation* | README structured with system architecture, technology stack, and installation guide. Mission Log initialized for ongoing development tracking. |
+
+---
+
+## 📂 Datenstruktur (Bodenstation)
+
+Alle Telemetriedaten, die vom Bordcomputer (Raspberry Pi / OBC) empfangen werden, werden im Verzeichnis **`data/`** gespeichert und verarbeitet.
+Diese Struktur dient der klaren Organisation, Validierung und Archivierung der Missionsdaten.
+```text
+data/
+├─ raw/obc/YYYY/YYYY-MM/telemetry_YYYY-MM-DD[_HH]_obc.csv   # Rohdaten direkt vom Bordcomputer
+├─ processed/                                                # geprüfte und bereinigte Daten
+├─ reports/                                                  # Berichte, Diagramme, Auswertungen
+├─ archive/                                                  # ältere archivierte Daten (z. B. ZIP)
+└─ rejected/                                                 # verworfene Datensätze (ungültige Signatur)
+```
+---
+
+### 🧩 Format der Telemetrie-Dateien (CSV)
+
+Jede Zeile repräsentiert eine einzelne Messung der Sensoren.
+Die Datei enthält immer eine Kopfzeile mit folgenden Spalten:
+
+ts,temperature_c,humidity_pct,pressure_hpa,mode,sig
+
+**Spaltenbeschreibung:**
+
+| Feld | Typ | Beschreibung |
+|------|------|--------------|
+| `ts` | Datum/Zeit (UTC) | Zeitstempel im ISO 8601-Format, z. B. `2025-11-05T14:15:00Z` |
+| `temperature_c` | Float | Temperatur in °C |
+| `humidity_pct` | Float | Luftfeuchtigkeit in % |
+| `pressure_hpa` | Float | Luftdruck in hPa |
+| `mode` | String | Modus: `sim` (Simulation) oder `real` (Realdaten) |
+| `sig` | String | HMAC-Signatur des Datensatzes (hexadezimal) |
+
+---
+
+### 🗂️ Benennung der Dateien
+```text
+telemetry_YYYY-MM-DD_obc.csv        # Tageslog
+telemetry_YYYY-MM-DDTHH_obc.csv     # Stundenlog bei hohem Datenvolumen
+```
+**Beispiele:**
+```text
+telemetry_2025-11-05_obc.csv
+telemetry_2025-11-05T14_obc.csv
+```
+🕒 Alle Zeitstempel und Dateinamen verwenden **UTC-Zeit**, um Verwechslungen mit Zeitzonen zu vermeiden.
+
+---
+
+### 🔄 Datenfluss und Speicherung
+
+- Neue Dateien werden in `data/raw/obc/...` gespeichert
+- Nach erfolgreicher Signaturprüfung werden sie nach `data/processed/` verschoben
+- Ungültige Dateien kommen nach `data/rejected/`
+- Alte Datensätze werden regelmäßig nach `data/archive/` archiviert
+- Auswertungen und Diagramme liegen in `data/reports/`
+
+---
+
+### 🚫 Git-Ignore-Regeln
+
+Um das Repository sauber zu halten, werden reale Daten nicht versioniert.
+In `.gitignore` sind folgende Regeln eingetragen:
+```text
+data/raw/
+data/processed/
+data/archive/
+data/rejected/
+*.zip
+*.7z
+```
+In jeder Unterordner befindet sich eine `.gitkeep`-Datei, damit die Struktur im Repository erhalten bleibt.
+
+---
+
+### 🛰️ Datenfluss (Überblick)
+
+1. **OBC (On-Board Computer)** auf dem Raspberry Pi erzeugt Telemetriedaten und schreibt sie lokal in CSV-Dateien.
+2. **Ground Station (Mac)** empfängt diese Dateien regelmäßig (z. B. über `scp`, `MQTT` oder `HTTP`) und legt sie in `data/raw/obc/` ab.
+3. Danach folgt die Verifizierung, Verarbeitung und Archivierung der Daten.
+
+---
+
+📘 *Dokument aktualisiert: November 2025 — Version 1.0 Datenstruktur-Spezifikation*
 
 ---
 
