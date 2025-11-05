@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-Mission View — Ground Station Telemetry Monitor
-- Читает cube/data/telemetry.csv
-- Рисует 3 графика (темп / влажн / давление)
-- Режимы: одноразовый (--once) и "живой" (по умолчанию)
+Mission View — Bodenstations-Telemetrie-Monitor
+
+Funktionen:
+- Liest cube/data/telemetry.csv
+- Zeichnet drei Diagramme (Temperatur / Luftfeuchtigkeit / Luftdruck)
+- Modi: Einmalige Darstellung (--once) oder Live-Modus (Standard)
 """
 
 import argparse
@@ -17,8 +19,9 @@ CSV_PATH = pathlib.Path("cube/data/telemetry.csv")
 
 
 def load_df() -> pd.DataFrame:
+    """Lädt die CSV-Datei und gibt sie als DataFrame zurück."""
     if not CSV_PATH.exists():
-        raise SystemExit(f"[ERR] Telemetry file not found: {CSV_PATH}")
+        raise SystemExit(f"[ERR] Telemetrie-Datei nicht gefunden: {CSV_PATH}")
     df = pd.read_csv(CSV_PATH, parse_dates=["ts"])
     if df.empty:
         return df
@@ -27,28 +30,29 @@ def load_df() -> pd.DataFrame:
 
 
 def draw_once(df: pd.DataFrame):
+    """Zeichnet eine statische Telemetrie-Grafik (einmalige Ansicht)."""
     fig, axes = plt.subplots(3, 1, sharex=True, figsize=(9, 7))
-    fig.suptitle("CubeSat Telemetry – Ground Station View", fontsize=14)
+    fig.suptitle("CubeSat Telemetrie – Bodenstationsansicht", fontsize=14)
 
-    # Температура
-    axes[0].plot(df["ts"], df["temperature"], label="Temperature (°C)")
+    # Temperatur
+    axes[0].plot(df["ts"], df["temperature"], label="Temperatur (°C)")
     axes[0].set_ylabel("°C")
     axes[0].legend(loc="upper left")
     axes[0].grid(True, linestyle="--", alpha=0.4)
 
-    # Влажность
-    axes[1].plot(df["ts"], df["humidity"], label="Humidity (%)")
+    # Luftfeuchtigkeit
+    axes[1].plot(df["ts"], df["humidity"], label="Luftfeuchtigkeit (%)")
     axes[1].set_ylabel("%")
     axes[1].legend(loc="upper left")
     axes[1].grid(True, linestyle="--", alpha=0.4)
 
-    # Давление
-    axes[2].plot(df["ts"], df["pressure"], label="Pressure (hPa)")
+    # Luftdruck
+    axes[2].plot(df["ts"], df["pressure"], label="Luftdruck (hPa)")
     axes[2].set_ylabel("hPa")
     axes[2].legend(loc="upper left")
     axes[2].grid(True, linestyle="--", alpha=0.4)
 
-    axes[2].set_xlabel("Time (UTC)")
+    axes[2].set_xlabel("Zeit (UTC)")
     axes[2].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
     fig.autofmt_xdate()
     plt.tight_layout()
@@ -56,67 +60,69 @@ def draw_once(df: pd.DataFrame):
 
 
 def live_loop(interval_sec: float = 2.0, window: int = 300):
-    """Перерисовывает графики каждые interval_sec секунд.
-    window — сколько последних точек держать на экране (для читаемости).
+    """
+    Aktualisiert die Diagramme alle interval_sec Sekunden.
+    window – Anzahl der letzten Datenpunkte, die angezeigt werden (für Lesbarkeit).
     """
     plt.ion()
     fig, axes = plt.subplots(3, 1, sharex=True, figsize=(9, 7))
-    fig.suptitle("CubeSat Telemetry – LIVE", fontsize=14)
+    fig.suptitle("CubeSat Telemetrie – LIVE", fontsize=14)
 
     try:
         while True:
             df = load_df()
             if not df.empty:
-                # ограничим окно последних N точек
+                # Begrenzung auf die letzten N Messpunkte
                 if len(df) > window:
                     df = df.iloc[-window:]
 
                 for ax in axes:
                     ax.cla()
 
-                # Температура
-                axes[0].plot(df["ts"], df["temperature"], label="Temperature (°C)")
+                # Temperatur
+                axes[0].plot(df["ts"], df["temperature"], label="Temperatur (°C)")
                 axes[0].set_ylabel("°C")
                 axes[0].legend(loc="upper left")
                 axes[0].grid(True, linestyle="--", alpha=0.4)
 
-                # Влажность
-                axes[1].plot(df["ts"], df["humidity"], label="Humidity (%)")
+                # Luftfeuchtigkeit
+                axes[1].plot(df["ts"], df["humidity"], label="Luftfeuchtigkeit (%)")
                 axes[1].set_ylabel("%")
                 axes[1].legend(loc="upper left")
                 axes[1].grid(True, linestyle="--", alpha=0.4)
 
-                # Давление
-                axes[2].plot(df["ts"], df["pressure"], label="Pressure (hPa)")
+                # Luftdruck
+                axes[2].plot(df["ts"], df["pressure"], label="Luftdruck (hPa)")
                 axes[2].set_ylabel("hPa")
                 axes[2].legend(loc="upper left")
                 axes[2].grid(True, linestyle="--", alpha=0.4)
 
-                axes[2].set_xlabel("Time (UTC)")
+                axes[2].set_xlabel("Zeit (UTC)")
                 axes[2].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
                 fig.autofmt_xdate()
                 plt.tight_layout()
 
-            plt.pause(0.001)  # отдаём управление окну
+            plt.pause(0.001)  # gibt die Kontrolle an das Fenster zurück
             time.sleep(interval_sec)
 
     except KeyboardInterrupt:
-        print("\n[GROUND] Live view stopped by user.")
+        print("\n[GROUND] Live-Ansicht vom Benutzer gestoppt.")
     finally:
         plt.ioff()
         plt.show()
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Ground Station Telemetry Monitor")
-    parser.add_argument("--once", action="store_true", help="draw one static figure and exit")
-    parser.add_argument("--interval", type=float, default=2.0, help="refresh interval (sec) in live mode")
-    parser.add_argument("--window", type=int, default=300, help="show last N samples in live mode")
+    """CLI-Parser für den Bodenstations-Monitor."""
+    parser = argparse.ArgumentParser(description="Bodenstations-Telemetrie-Monitor")
+    parser.add_argument("--once", action="store_true", help="einmalige Darstellung und beenden")
+    parser.add_argument("--interval", type=float, default=2.0, help="Aktualisierungsintervall (Sekunden) im Live-Modus")
+    parser.add_argument("--window", type=int, default=300, help="Zeige die letzten N Messpunkte im Live-Modus")
     args = parser.parse_args()
 
     df = load_df()
     if df.empty:
-        raise SystemExit("[ERR] Telemetry file is empty. Run OBC logger first.")
+        raise SystemExit("[ERR] Telemetrie-Datei ist leer. Bitte OBC-Logger zuerst starten.")
 
     if args.once:
         draw_once(df)

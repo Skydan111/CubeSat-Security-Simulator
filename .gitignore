@@ -10,9 +10,10 @@ __pycache__/
 .vscode/
 .idea/
 
-# Data (не коммитим реальные данные)
+# Data folders (mission data not versioned)
 data/raw/
 data/processed/
+data/reports/
 data/archive/
 data/rejected/
 *.zip

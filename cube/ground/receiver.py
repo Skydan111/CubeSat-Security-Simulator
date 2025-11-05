@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Заглушка приёмника.
-Дальше сюда добавим:
- - чтение из сокета/MQTT/HTTP
- - проверку подписи через verify.py
- - запись в CSV
+Empfangsmodul (Stub-Version).
+
+Hier wird später implementiert:
+ - Empfang über Socket / MQTT / HTTP
+ - Signaturprüfung mit verify.py (HMAC)
+ - Speicherung der Telemetriedaten als CSV
 """
 def main():
     print("[GROUND] Receiver stub ready")
