@@ -1,14 +1,25 @@
 #!/usr/bin/env python3
+"""
+OBC Telemetrie-Logger (BME280 / Simulation)
+
+Funktionen:
+- Lädt Konfiguration (config.json)
+- Erfasst Sensordaten (BME280) oder simuliert Werte
+- Schreibt CSV mit Kopfzeile und Zeitstempel (UTC)
+"""
+
 import os, csv, time, json, datetime, random, pathlib
 
+# Projektpfade / Konfiguration laden
 HERE = pathlib.Path(__file__).resolve().parent
 CFG = json.load(open(HERE / "config.json", "r"))
 
+# Zielpfad für CSV aus der Konfiguration
 CSV_PATH = pathlib.Path(CFG["csv_path"])
 CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 def read_bme280():
-    """Пытаемся читать реальный сенсор. Если не вышло — кидаем исключение."""
+    """Versucht reale Messwerte vom BME280 auszulesen; wirft Ausnahme bei Fehler."""
     import board, busio
     from adafruit_bme280 import basic as adafruit_bme280
     i2c = busio.I2C(board.SCL, board.SDA)
@@ -20,7 +31,7 @@ def read_bme280():
     }
 
 def simulate():
-    """Эмуляция телеметрии: стабильные, но немного шумящие значения."""
+    """Simulation der Telemetrie: stabile Basiswerte mit leichtem Rauschen."""
     base_t, base_h, base_p = 22.0, 45.0, 1013.0
     return {
         "temperature": round(base_t + random.uniform(-0.5, 0.8), 2),
@@ -29,20 +40,27 @@ def simulate():
     }
 
 def get_sample():
+    """
+    Liefert einen Messpunkt.
+    Wenn CFG['mode'] == 'sensor', wird der echte Sensor versucht;
+    bei Fehler erfolgt Fallback auf Simulation.
+    """
     if CFG.get("mode") == "sensor":
         try:
             return read_bme280()
         except Exception as e:
-            print(f"[WARN] Sensor fallback to simulate ({e})")
+            print(f"[WARN] Sensor-Fallback auf Simulation ({e})")
             return simulate()
     return simulate()
 
 def write_header_if_needed(path: pathlib.Path):
+    """Erzeugt CSV-Kopfzeile, falls Datei noch nicht existiert bzw. leer ist."""
     if not path.exists() or path.stat().st_size == 0:
         with open(path, "w", newline="") as f:
             csv.writer(f).writerow(["ts","temperature","humidity","pressure"])
 
 def main():
+    """Hauptschleife: schreibt alle N Sekunden einen Telemetrie-Datensatz."""
     write_header_if_needed(CSV_PATH)
     interval = int(CFG.get("sample_interval_sec", 60))
     while True:
