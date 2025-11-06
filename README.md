@@ -9,6 +9,7 @@
 - [🌌 Motivation & Vision](#-motivation--vision)
 - [🎯 Missionsziele](#-missionsziele)
 - [🧩 Systemarchitektur](#-systemarchitektur)
+- [📡 Telemetrie-Pipeline](#-telemetrie-pipeline)
 - [🔐 Sicherheitsebene](#-sicherheitsebene)
 - [🧠 Technologien](#-technologien)
 - [📦 Projektstruktur](#-projektstruktur)
@@ -56,6 +57,45 @@ Es soll Studierenden, Entwicklern und Ingenieuren als Inspiration dienen, wie ma
 | Datenlogger (CSV)     |             | Signatur-Verifikation |
 | HMAC-Signierung       |← Befehle ───│ Visualisierung / Logs |
 +-----------------------+             +-----------------------+
+```
+---
+
+## 📡 Telemetrie-Pipeline (ASCII-Diagramm)
+```text
+           ┌──────────────────────────────┐
+           │        On-Board Computer     │
+           │        (Raspberry Pi 4)      │
+           ├──────────────────────────────┤
+           │ bme_log.py                   │
+           │  ├─ liest BME280 / Simulation│
+           │  ├─ signiert Datensatz (HMAC)│
+           │  └─ schreibt telemetry.csv   │
+           └──────────────┬───────────────┘
+                          │   (scp / net)
+                          ▼
+           ┌──────────────────────────────-┐
+           │        Ground Station         │
+           │            (Mac)              │
+           ├──────────────────────────────-┤
+           │ receiver.py                   │
+           │  ├─ empfängt CSV-Datei        │
+           │  ├─ prüft Signatur (verify.py)│
+           │  ├─ schreibt → raw/           │
+           │  ├─ gültig → processed/       │
+           │  └─ ungültig → rejected/      │
+           │                               │
+           │ plot.py                       │
+           │  └─ visualisiert Telemetrie   │
+           └──────────────┬────────────────┘
+                          │
+                          ▼
+           ┌──────────────────────────────┐
+           │       data/-Verzeichnis      │
+           │  raw/        → eingehende CSV│
+           │  processed/  → geprüfte Daten│
+           │  rejected/   → fehlerhafte   │
+           │  archive/    → alte Missionen│
+           └──────────────────────────────┘
 ```
 ---
 
