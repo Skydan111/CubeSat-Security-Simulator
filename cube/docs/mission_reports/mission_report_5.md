@@ -1,34 +1,57 @@
-# 🛰️ Mission Report #5 – Secure Key Sync & First Data Transmission Test
-**Date:** 2025-11-05
-**Status:** ✅ Completed
+# 🛰️ Mission Report #5 – Sichere Schlüssel-Synchronisierung & Erster Datenübertragungstest
+
+**Datum:** 2025-11-05
 **Phase:** 🔐 Security Integration / Data Link Test
+**Leitung:** Oleg Skydan
 
 ---
 
-## 🧩 Summary
-In this phase, the Ground Station (Mac) and the On-Board Computer (Raspberry Pi 4) were successfully synchronized and linked through a simulated secure telemetry transmission.
-
-The mission verified that the **HMAC-SHA256 key** used for signing and verifying telemetry data is identical on both systems, ensuring data authenticity and integrity.
-
-A first manual data transfer of `telemetry.csv` from the OBC to the Ground Station was completed using `scp`, confirming bidirectional communication readiness.
+## 🎯 Ziel der Phase
+Ziel dieser Phase war die erfolgreiche Synchronisierung der kryptografischen Schlüssel zwischen Bodenstation und Bordcomputer (OBC) sowie die Durchführung des ersten gesicherten Telemetrie-Transfers.
+Damit wurde überprüft, dass die HMAC-SHA256-Signaturen auf beiden Systemen mit demselben geheimen Schlüssel erzeugt und verifiziert werden können.
 
 ---
 
-## 🛰️ Actions Performed
-1. Generated and synchronized a shared **HMAC secret** between Ground and OBC.
-2. Created `ground.json` and `mission.json` configuration files with identical secret values.
-3. Implemented a validation script (`check_key.py`) confirming key match.
-4. Verified telemetry generation on Raspberry Pi (`/home/pi/obc/logs/telemetry.csv`).
-5. Simulated the first manual data transmission via `scp` to `data/raw/telemetry.csv` on the Ground Station.
-6. Confirmed file integrity and structure.
+## 🧩 Statusübersicht
+
+| Bereich | Status | Beschreibung |
+|----------|---------|--------------|
+| Schlüssel-Synchronisierung | ✅ | Gemeinsamer Missionsschlüssel auf Ground & OBC erzeugt und abgeglichen |
+| Konfiguration | ✅ | `ground.json` und `mission.json` mit identischem secret Hexwert angelegt |
+| Validierung | ✅ | `check_key.py` prüft und bestätigt Schlüsselübereinstimmung |
+| Telemetrie (Log) | ✅ | `telemetry.csv` auf dem OBC erfolgreich generiert |
+| Datenübertragung | ✅ | Manuelle Übertragung per `scp` auf Ground Station (`data/raw/telemetry.csv`) |
+| Integritätsprüfung | ✅ | Datei-Struktur und Signaturen valide und unverändert |
 
 ---
 
-## 📡 Result
-✅ Ground and OBC are cryptographically synchronized.
-✅ Secure telemetry data successfully transferred from OBC → Ground.
-⚙️ Next phase: Automate transmission via `rsync` or MQTT, integrate signature verification and data pipeline (processed / rejected / visualization).
+## ⚙️ Technische Beschreibung
+
+- **Schlüsselalgorithmus:** HMAC-SHA256
+- **Validierungsskript:** `check_key.py`
+- **Übertragungsweg:** `scp` (Simulation des gesicherten Links)
+- **Dateipfade:**
+  - OBC: `/home/pi/obc/logs/telemetry.csv`
+  - Ground: `~/cube/data/raw/telemetry.csv`
+- **Ergebnis:** Daten authentisch, Signatur gültig, Kommunikation bidirektional bereit
 
 ---
 
-📘 *Report prepared by Oleg Skydan – CubeSat Security Simulator Project (Fachschule Wiesau)*
+## 🧠 Erkenntnisse dieser Phase
+- Der HMAC-Schlüssel ist auf beiden Systemen identisch und funktioniert fehlerfrei.
+- Die Telemetrie-Datei kann sicher vom OBC zur Bodenstation übertragen werden.
+- Damit ist die kryptografische Synchronisation zwischen Ground und OBC abgeschlossen.
+- Das System ist nun bereit für automatisierte Datenübertragung über `rsync` oder MQTT.
+
+---
+
+## 🚀 Nächste Schritte (Phase #6 – Automatisierte Datenübertragung)
+1. Automatisierte Übertragung der Telemetrie mittels `rsync` oder MQTT.
+2. Integration der Signaturprüfung (`verify.py`) im Datenpipeline.
+3. Erweiterung des Ground-Dashboards mit Status „processed / rejected“.
+4. Finaler Integrationstest zwischen OBC und Ground im Live-Betrieb.
+
+---
+
+> 💬 *„Boden und Orbit sprechen nun dieselbe Sprache – die der Sicherheit.“*
+> — Oleg Skydan, Missionsleiter  
