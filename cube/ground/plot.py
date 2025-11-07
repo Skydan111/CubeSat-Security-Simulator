@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-Mission View — Bodenstations-Telemetrie-Monitor (robuster)
+Mission View — Bodenstations-Telemetrie-Monitor (robust)
 
-- Liest Telemetrie aus CSV (Schema A: ts,temperature_c,humidity_pct,pressure_hpa,...
-                         oder Schema B: ts,temperature,humidity,pressure,...)
+Funktionen:
+- Liest Telemetrie aus CSV
+  * Schema A: ts,temperature_c,humidity_pct,pressure_hpa,...
+  * Schema B: ts,temperature,humidity,pressure,...
 - Zeichnet drei Diagramme (Temperatur / Luftfeuchtigkeit / Luftdruck)
-- Modi: --once (einmal) oder Live (Standard)
+- Modi: --once (einmalig) oder Live (Standard)
 - Flags: --csv (Pfad), --interval, --window, --save (PNG-Snapshot)
 """
 
@@ -19,20 +21,21 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 
-DEFAULT_CSV = pathlib.Path("cube/data/raw/telemetry.csv")
+# Standard: geprüfte Daten (processed) aus dem Projektstamm
+DEFAULT_CSV = pathlib.Path("data/processed/telemetry.csv")
 
-# akzeptierte Spaltennamen (beide Schemata)
+# Akzeptierte Spaltennamen (zwei Schemata werden unterstützt)
 COL_MAP_CANDIDATES: Dict[str, Tuple[str, ...]] = {
     "temperature": ("temperature", "temperature_c", "temp", "temp_c"),
-    "humidity": ("humidity", "humidity_pct", "hum", "rh", "rh_pct"),
-    "pressure": ("pressure", "pressure_hpa", "press", "press_hpa"),
+    "humidity":    ("humidity", "humidity_pct", "hum", "rh", "rh_pct"),
+    "pressure":    ("pressure", "pressure_hpa", "press", "press_hpa"),
 }
 
 
 def _resolve_columns(df: pd.DataFrame) -> Dict[str, str]:
-    """Finde passende Spaltennamen im df für temperature/humidity/pressure."""
+    """Ermittelt passende Spaltennamen im DataFrame für Temperatur/Feuchte/Druck."""
     resolved = {}
-    cols = {c.lower(): c for c in df.columns}  # lowercase->original
+    cols = {c.lower(): c for c in df.columns}  # lowercase->Original
     for canonical, candidates in COL_MAP_CANDIDATES.items():
         for cand in candidates:
             if cand in cols:
@@ -40,27 +43,31 @@ def _resolve_columns(df: pd.DataFrame) -> Dict[str, str]:
                 break
         if canonical not in resolved:
             raise SystemExit(
-                f"[ERR] Erwartete Spalten nicht gefunden. "
-                f"Brauchbar sind z.B. {COL_MAP_CANDIDATES[canonical]} — vorhanden: {list(df.columns)}"
+                f"[ERR] Erwartete Spalten nicht gefunden.\n"
+                f"- Gesucht: {COL_MAP_CANDIDATES[canonical]}\n"
+                f"- Vorhanden: {list(df.columns)}"
             )
     return resolved
 
 
 def load_df(csv_path: pathlib.Path) -> pd.DataFrame:
-    """Lädt die CSV-Datei und gibt normalisierte Spalten zurück."""
+    """
+    Lädt die CSV-Datei, normalisiert Spaltennamen und erzwingt numerische Typen.
+    Erwartet eine Spalte 'ts' mit Zeitstempeln (UTC).
+    """
     if not csv_path.exists():
         raise SystemExit(f"[ERR] Telemetrie-Datei nicht gefunden: {csv_path}")
 
     try:
         df = pd.read_csv(csv_path, parse_dates=["ts"])
     except ValueError as e:
-        # Falls 'ts' anders heißt (крайний случай) — сообщаем явно
+        # Falls 'ts' anders heißt (Extremfall) — explizite Meldung
         raise SystemExit(f"[ERR] Konnte 'ts' nicht parsen: {e}")
 
     if df.empty:
         return df
 
-    # Sortieren, Spalten auflösen, numerische Typen erzwingen
+    # Sortieren, 'ts' bereinigen, Spalten auflösen, numerische Typen erzwingen
     df = df.sort_values("ts").dropna(subset=["ts"])
     col = _resolve_columns(df)
 
@@ -69,37 +76,45 @@ def load_df(csv_path: pathlib.Path) -> pd.DataFrame:
 
     df = df.dropna(subset=[col["temperature"], col["humidity"], col["pressure"]])
 
-    # Einheitliche Alias-Spalten für Plot
+    # Einheitliche Alias-Spalten für den Plot
     df = df.rename(columns={
         col["temperature"]: "temperature_norm",
-        col["humidity"]: "humidity_norm",
-        col["pressure"]: "pressure_norm",
+        col["humidity"]:    "humidity_norm",
+        col["pressure"]:    "pressure_norm",
     })
     return df
 
 
 def _format_time_axis(ax):
+    """Schöne, kompakte Zeitachse."""
     locator = mdates.AutoDateLocator()
     formatter = mdates.ConciseDateFormatter(locator)
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
 
 
-def draw_once(df: pd.DataFrame, title: str = "CubeSat Telemetrie – Bodenstationsansicht", save_path: pathlib.Path = None):
+def draw_once(
+    df: pd.DataFrame,
+    title: str = "CubeSat Telemetrie – Bodenstationsansicht",
+    save_path: pathlib.Path | None = None
+):
     """Zeichnet eine statische Telemetrie-Grafik (einmalige Ansicht)."""
     fig, axes = plt.subplots(3, 1, sharex=True, figsize=(9, 7))
     fig.suptitle(title, fontsize=14)
 
+    # Temperatur
     axes[0].plot(df["ts"], df["temperature_norm"], label="Temperatur (°C)")
     axes[0].set_ylabel("°C")
     axes[0].legend(loc="upper left")
     axes[0].grid(True, linestyle="--", alpha=0.4)
 
+    # Luftfeuchtigkeit
     axes[1].plot(df["ts"], df["humidity_norm"], label="Luftfeuchtigkeit (%)")
     axes[1].set_ylabel("%")
     axes[1].legend(loc="upper left")
     axes[1].grid(True, linestyle="--", alpha=0.4)
 
+    # Luftdruck
     axes[2].plot(df["ts"], df["pressure_norm"], label="Luftdruck (hPa)")
     axes[2].set_ylabel("hPa")
     axes[2].legend(loc="upper left")
@@ -117,17 +132,21 @@ def draw_once(df: pd.DataFrame, title: str = "CubeSat Telemetrie – Bodenstatio
     plt.show()
 
 
-def live_loop(csv_path: pathlib.Path, interval_sec: float = 2.0, window: int = 300, save_path: pathlib.Path = None):
+def live_loop(
+    csv_path: pathlib.Path,
+    interval_sec: float = 2.0,
+    window: int = 300,
+    save_path: pathlib.Path | None = None
+):
     """
-    Aktualisiert die Diagramme alle interval_sec Sekunden.
-    window – Anzahl der letzten Datenpunkte, die angezeigt werden (für Lesbarkeit).
+    Live-Modus: aktualisiert die Diagramme alle 'interval_sec' Sekunden.
+    'window' gibt die Anzahl der letzten Messpunkte an (Lesbarkeit).
     """
     plt.ion()
     fig, axes = plt.subplots(3, 1, sharex=True, figsize=(9, 7))
     fig.suptitle("CubeSat Telemetrie – LIVE", fontsize=14)
 
     last_mtime = None
-    last_rows = 0
 
     try:
         while True:
@@ -137,28 +156,26 @@ def live_loop(csv_path: pathlib.Path, interval_sec: float = 2.0, window: int = 3
                 continue
 
             mtime = csv_path.stat().st_mtime
-            need_redraw = (mtime != last_mtime)
-
-            if not need_redraw:
-                # Keine Änderung — sanft weiter
+            if mtime == last_mtime:
                 plt.pause(interval_sec)
                 continue
 
             df = load_df(csv_path)
 
+            # Wenn leer: Hinweis einblenden und warten
             if df.empty:
                 for ax in axes:
                     ax.cla()
                     ax.text(0.5, 0.5, "Keine Daten", ha="center", va="center", transform=ax.transAxes)
                 plt.pause(interval_sec)
                 last_mtime = mtime
-                last_rows = 0
                 continue
 
-            # Begrenzung auf die letzten N Messpunkte
+            # Auf die letzten N Punkte begrenzen
             if len(df) > window:
                 df = df.iloc[-window:]
 
+            # Achsen leeren und neu zeichnen
             for ax in axes:
                 ax.cla()
 
@@ -186,7 +203,6 @@ def live_loop(csv_path: pathlib.Path, interval_sec: float = 2.0, window: int = 3
                 plt.savefig(save_path, dpi=150)
 
             last_mtime = mtime
-            last_rows = len(df)
             plt.pause(interval_sec)
 
     except KeyboardInterrupt:
@@ -197,6 +213,7 @@ def live_loop(csv_path: pathlib.Path, interval_sec: float = 2.0, window: int = 3
 
 
 def main():
+    """CLI-Einstiegspunkt für den Bodenstations-Monitor."""
     parser = argparse.ArgumentParser(description="Bodenstations-Telemetrie-Monitor")
     parser.add_argument("--csv", type=pathlib.Path, default=DEFAULT_CSV, help="Pfad zur Telemetrie-CSV")
     parser.add_argument("--once", action="store_true", help="einmalige Darstellung und beenden")
@@ -207,7 +224,7 @@ def main():
 
     df = load_df(args.csv)
     if df.empty and args.once:
-        raise SystemExit("[ERR] Telemetrie-Datei ist leer. Bitte OBC-Logger zuerst starten.")
+        raise SystemExit("[ERR] Telemetrie-Datei ist leer. Bitte OBC/Receiver zuerst starten.")
 
     if args.once:
         draw_once(df, save_path=args.save)

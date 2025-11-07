@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+"""
+verify.py – HMAC-Signaturprüfung für Telemetriedaten
+
+Funktionen:
+ - Lädt geheimen Schlüssel aus config/ground.json oder Umgebungsvariable
+ - Verifiziert HMAC-SHA256-Signaturen
+ - Wird vom Receiver-Modul verwendet
+"""
+
 import hmac, hashlib, binascii, json, os, pathlib
 
 # --- Neue Sektion: Laden der Konfiguration ---
