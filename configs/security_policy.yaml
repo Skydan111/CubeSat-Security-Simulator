@@ -1,0 +1,59 @@
+# ===============================================================
+# Security-Policy für den Adaptive Security Mode (Ground Station)
+# ===============================================================
+#
+# Dieses Policy-Dokument definiert das Verhalten des SecurityManager:
+#   • Zeitfenster für die Analyse
+#   • Schwellwerte für Lockout
+#   • Gewichtung verschiedener Fehlertypen
+#   • Verhalten während des Lockouts
+#   • Speicherorte für Security- und Audit-Logs
+#
+# Alle Werte sind bewusst konservativ gewählt und können je nach
+# Kanalqualität, Paketfrequenz oder Angriffsmodell angepasst werden.
+# ===============================================================
+
+# ---- Analysefenster / Schwellenwerte ----
+
+# Länge des gleitenden Analysefensters in Sekunden.
+window_seconds: 120
+
+# Maximal erlaubter Anteil fehlerhafter Pakete im Fenster (0.0–1.0),
+# ab dem ein Lockout ausgelöst wird (gewichtete Ratio).
+max_fail_ratio: 0.4
+
+# Mindestanzahl Ereignisse, bevor die Ratio überhaupt bewertet wird.
+min_events_in_window: 10
+
+# Sofort-Lockout, wenn so viele fehlerhafte Pakete direkt hintereinander kommen.
+consecutive_fail_threshold: 5
+
+
+# ---- Verhalten des Lockouts ----
+
+# Dauer des Lockouts in Sekunden.
+lockout_seconds: 60
+
+# „Cooldown“-Zeit nach Ende des Lockouts.
+# Während dieser Zeit reagiert das System weniger empfindlich.
+cooldown_seconds: 90
+
+
+# ---- Gewichtung der Fehlertypen ----
+# Höheres Gewicht = höherer Einfluss auf das Fehlerratio.
+weights:
+  invalid_signature: 1.0   # Kritisch: HMAC ungültig → mögliche Manipulation
+  corrupt_payload:   0.6   # Payload beschädigt → Kanalprobleme
+  malformed_packet:  0.8   # Struktureller Fehler → ungewöhnlich, verdächtig
+
+
+# ---- Verhalten während eines Lockouts ----
+#   drop       = Paket wird verworfen (keine Speicherung)
+#   reject     = Paket landet in REJECTED
+#   quarantine = Paket landet separat in QUARANTINE (für spätere Analyse)
+action_during_lockout: "quarantine"
+
+
+# ---- Speicherorte für Logs ----
+security_log_path: "logs/security.log"          # Menschlich lesbares Log
+audit_log_path:    "logs/security_audit.jsonl"  # Maschinenlesbares Audit (JSONL)

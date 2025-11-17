@@ -21,11 +21,14 @@ data/processed/
 data/reports/
 data/archive/
 data/rejected/
+data/tmp/
+data/quarantine
 *.zip
 *.7z
 
 # Log-Dateien
 *.log
+logs/
 
 # Lokale Medien oder Hardware-Bilder
 docs/hardware/
