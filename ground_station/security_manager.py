@@ -48,7 +48,7 @@ class SecurityManager:
     """
 
     def __init__(self, policy_path: str, security_log_path: Optional[str] = None, audit_log_path: Optional[str] = None):
-        # Policy laden
+    # Policy laden
         with open(policy_path, "r", encoding="utf-8") as f:
             self.policy = yaml.safe_load(f) or {}
 
@@ -70,14 +70,43 @@ class SecurityManager:
         os.makedirs(os.path.dirname(self.security_log_path), exist_ok=True)
         os.makedirs(os.path.dirname(self.audit_log_path), exist_ok=True)
 
-        # Datenstrukturen
+        # Datenstrukturen für das Analysefenster
         self._events: Deque[SecurityEvent] = collections.deque()
         self._lock = threading.Lock()
         self._lockout_until: float = 0.0
         self._consecutive_fail = 0
-        self._logger = logging.getLogger("security")
 
-        # Audit-Datei (JSONL)
+        # Logger für sicherheitsrelevante Ereignisse
+        self._logger = logging.getLogger("security")
+        self._logger.setLevel(logging.INFO)
+        # Verhindert, dass Meldungen zusätzlich noch über den Root-Logger dupliziert werden
+        self._logger.propagate = False
+
+        # File-/Stream-Handler nur einmal hinzufügen
+        # (sonst bei mehrfacher Instanzierung doppelte Logs)
+        if not self._logger.handlers:
+            handlers = []
+
+            # FileHandler für das Security-Log
+            fh = logging.FileHandler(self.security_log_path, encoding="utf-8")
+            fh.setLevel(logging.INFO)
+            handlers.append(fh)
+
+            # Konsolen-Handler für Realtime-Ausgabe im Terminal
+            ch = logging.StreamHandler()
+            ch.setLevel(logging.INFO)
+            handlers.append(ch)
+
+            # Gemeinsames Format für alle Handler
+            fmt = logging.Formatter(
+                fmt="%(asctime)s [%(levelname)s] %(message)s",
+                datefmt="%Y-%m-%dT%H:%M:%S"
+            )
+            for h in handlers:
+                h.setFormatter(fmt)
+                self._logger.addHandler(h)
+
+        # Audit-Datei (JSONL) für maschinenlesbare Auswertung
         self._audit_fp = open(self.audit_log_path, "a", encoding="utf-8")
 
     def __del__(self):

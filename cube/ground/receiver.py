@@ -229,7 +229,6 @@ def receive_from_stdin(secman: Optional[object] = None, quarantine_path: Optiona
 def main() -> int:
     parser = argparse.ArgumentParser(description="Ground Receiver – CSV-Telemetrie mit Adaptiver Sicherheit")
     parser.add_argument("--simulate", action="store_true", help="Simulierter Empfang")
-    parser.add_argument("--simulate", action="store_true", help="Simulierter Empfang")
     parser.add_argument(
         "--simulate-count",
         type=int,
