@@ -16,10 +16,11 @@ def write_header_if_needed(path):
             w.writerow(["ts","temperature_c","humidity_pct","pressure_hpa","mode","sig"])
 
 def main():
-    CFG = json.load(open(HERE / "config" / "mission.json", "r"))
+    CFG = json.load(open(HERE.parents[2] / "configs" / "satellite.json", "r"))
+
     CSV_PATH = pathlib.Path(CFG["csv_path"])
     if not CSV_PATH.is_absolute():
-        CSV_PATH = HERE / CSV_PATH
+        CSV_PATH = HERE.parents[2] / CSV_PATH
     CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
     sensor = BME280Reader()
     write_header_if_needed(CSV_PATH)
