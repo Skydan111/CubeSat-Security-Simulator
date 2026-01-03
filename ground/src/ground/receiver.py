@@ -25,7 +25,7 @@ import csv
 def try_import_paths():
     """Versucht projektinterne Pfade zu importieren, fällt andernfalls mit verständlicher Meldung."""
     try:
-        from cube.ground.config.paths import RAW_PATH, PROC_PATH, REJ_PATH, CSV_HEADER
+        from ground.config.paths import RAW_PATH, PROC_PATH, REJ_PATH, CSV_HEADER
         return RAW_PATH, PROC_PATH, REJ_PATH, CSV_HEADER
     except Exception:
         # Klarer Fehler – ohne diese Pfade ist die Pipeline nicht definiert.
@@ -34,7 +34,7 @@ def try_import_paths():
 def try_import_verify():
     """Versucht HMAC-Verify-Callback zu importieren. Fallback: einmalige Warnung, immer False."""
     try:
-        from cube.ground.verify import verify_with_config
+        from ground.verify import verify_with_config
         return verify_with_config
     except Exception:
         _warned = {"done": False}
@@ -48,7 +48,7 @@ def try_import_verify():
 def try_import_secman():
     """Versucht SecurityManager zu importieren. Fallback: Dummy, der alles erlaubt und nichts loggt."""
     try:
-        from ground_station.security_manager import SecurityManager
+        from ground.security.security_manager import SecurityManager
         return SecurityManager
     except Exception:
         class DummySecman:

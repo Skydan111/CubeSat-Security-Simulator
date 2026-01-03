@@ -15,7 +15,7 @@ from pathlib import Path
 # ------------------------------------------------------------
 
 # Projektstamm (eine Ebene über cube/)
-ROOT_DIR = Path(__file__).resolve().parents[3]
+ROOT_DIR = Path(__file__).resolve().parents[4]
 
 # Hauptordner für Daten
 DATA_DIR = ROOT_DIR / "data"
