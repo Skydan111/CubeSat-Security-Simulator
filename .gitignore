@@ -40,3 +40,6 @@ cube/ground/config/*.json
 # Bordcomputer (OBC – Raspberry Pi)
 # Enthält Missionskonfigs und Schlüssel
 obc/config/*.json
+
+# build / packaging artifacts
+*.egg-info/

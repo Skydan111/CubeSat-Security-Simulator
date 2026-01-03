@@ -1,8 +1,0 @@
-pyproject.toml
-src/cubesat_satellite.egg-info/PKG-INFO
-src/cubesat_satellite.egg-info/SOURCES.txt
-src/cubesat_satellite.egg-info/dependency_links.txt
-src/cubesat_satellite.egg-info/requires.txt
-src/cubesat_satellite.egg-info/top_level.txt
-src/satellite/__init__.py
-src/satellite/logger.py
