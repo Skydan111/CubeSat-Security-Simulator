@@ -12,8 +12,8 @@ import hmac, hashlib, binascii, json, os, pathlib
 from shared.protocol.signed_csv import verify_signed_line
 
 # --- Neue Sektion: Laden der Konfiguration ---
-HERE = pathlib.Path(__file__).resolve().parent
-CFG_PATH = HERE / "config" / "ground.json"
+from ground.config.paths import ROOT_DIR
+CFG_PATH = ROOT_DIR / "configs" / "ground.json"
 
 def _load_secret_hex() -> str:
     """
