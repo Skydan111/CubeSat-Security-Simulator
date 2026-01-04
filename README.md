@@ -1,8 +1,8 @@
 # 🛰️ CubeSat Security Simulator
 
-> **Mission Phase:** 🛰️ System Integration
-> **Status:** 🧩 Hardware Deployment in Progress
-> **Last Update:** 2025-11-05
+> **Mission Phase:** 🧪 Phase 3 — Testing & Validation (abgeschlossen)
+> **Status:** ✅ Kernsystem stabil
+> **Last Update:** 2026-01-04
 
 ## 📘 Inhaltsverzeichnis
 - [🚀 Missionsübersicht](#-missionsübersicht)
@@ -10,99 +10,98 @@
 - [🎯 Missionsziele](#-missionsziele)
 - [🧩 Systemarchitektur](#-systemarchitektur)
 - [📡 Telemetrie-Pipeline](#-telemetrie-pipeline)
-- [🔐 Sicherheitsebene](#-sicherheitsebene)
+- [🔐 Adaptive Sicherheitsebene](#-adaptivesicherheitsebene)
 - [🧠 Technologien](#-technologien)
 - [📦 Projektstruktur](#-projektstruktur)
 - [⚙️ Installation](#️-installation)
 - [👨‍🚀 Autor](#-autor)
 - [🗓️ Mission Timeline](#️-mission-timeline)
-- [🧭 Mission Log](#-mission-log)
 - [📂 Datenstruktur (Bodenstation)](#-datenstruktur-bodenstation)
 
 
 ## 🚀 Missionsübersicht
-**CubeSat Security Simulator** ist eine Lern- und Forschungsplattform, die die Architektur eines Mini-Satelliten (CubeSat) mit Fokus auf **Telemetrie und Cybersicherheit** simuliert.
-Das Projekt zeigt, wie Sensordaten sicher gesammelt, signiert, übertragen und auf der Bodenstation überprüft werden können.
+Der CubeSat Security Simulator ist ein lern- und ingenieurorientiertes Projekt zur Simulation eines sicheren CubeSat-Telemetriesystems mit klar getrennter Architektur:
+ - On-Board Computer (Satellite)
+ - Ground Station (Bodenstation)
+ - Shared Protocol & Kryptographie
+
+Der Fokus liegt auf Datenintegrität, sicherer Verarbeitung von Telemetrie sowie auf robuster Fehler- und Angriffsbehandlung, angelehnt an reale CubeSat- und Raumfahrtarchitekturen.
+
 
 ---
 
 ## 🌌 Motivation & Vision
-Die Idee zu diesem Projekt entstand aus dem Wunsch, praxisnah zu verstehen, wie sich Cybersicherheit, eingebettete Systeme und Raumfahrttechnologien verbinden lassen.
-In einer Zeit, in der Mini-Satelliten (CubeSats) und vernetzte IoT-Systeme immer häufiger eingesetzt werden, ist der Schutz der Datenkommunikation ein entscheidender Faktor für die Zuverlässigkeit und Sicherheit moderner Technologie.
+Moderne CubeSats und vernetzte Raumfahrt-/IoT-Systeme sind stark von zuverlässiger und sicherer Telemetrie abhängig.
+Dieses Projekt entstand aus dem Wunsch, praxisnah zu verstehen:
+ - wie Sensordaten an Bord eines Satelliten erzeugt werden,
+ - wie diese Daten kryptographisch abgesichert werden können,
+ - wie eine Bodenstation Daten verifiziert, klassifiziert und sicher verarbeitet.
 
-Ziel dieses Projekts ist es, nicht nur einen funktionierenden Prototyp zu entwickeln, sondern eine Lernplattform zu schaffen, die die Prinzipien sicherer Kommunikation im Weltraum greifbar macht.
-Der **CubeSat Security Simulator** soll zeigen, dass man auch mit einfachen, frei verfügbaren Komponenten ein komplexes, realistisches System modellieren und die Grundlagen von Kryptographie, Datenübertragung und Systemsicherheit verstehen kann.
+Ziel ist kein reines Demo-Projekt, sondern ein sauber strukturiertes, testbares und nachvollziehbares System, das reale ingenieurtechnische Prinzipien widerspiegelt.
 
-Langfristig sehe ich dieses Projekt als Basis für weitere Forschung oder Ausbildung im Bereich **IoT- und Space-Security**.
-Es soll Studierenden, Entwicklern und Ingenieuren als Inspiration dienen, wie man aus einer Idee ein technisch sauberes, sicherheitsorientiertes System mit realem Nutzen aufbauen kann.
 
 ---
 
 ## 🎯 Missionsziele
-- Aufbau eines CubeSat-Telemetriesystems mit einem **Raspberry Pi 4**
-- Implementierung einer **HMAC-SHA256-Signatur** zum Schutz der Daten
-- Aufbau einer Kommunikationsverbindung zwischen Bordcomputer und Bodenstation
-- Visualisierung von Telemetriedaten (Temperatur, Luftfeuchtigkeit, Druck) und Sicherheitsereignissen
+ - Simulation eines CubeSat-On-Board-Computers (Raspberry Pi + BME280)
+ - Signierung jedes Telemetriepakets mit HMAC-SHA256
+ - Robuste Verifikation auf der Bodenstation
+ - Adaptive Sicherheitslogik (Lockout, Quarantäne, Reject)
+ - Vollständige Unit-, Integrations- und Security-Tests
 
 ---
 
 ## 🧩 Systemarchitektur
 
 ```text
-+-----------------------+             +-----------------------+
-|   On-Board Computer   |             |     Bodenstation      |
-|    (Raspberry Pi 4)   |             |    (Laptop / Server)  |
-|-----------------------|             |-----------------------|
-| BME280 Sensor (I²C)   |── Telemetrie → MQTT / HTTP Receiver |
-| Datenlogger (CSV)     |             | Signatur-Verifikation |
-| HMAC-Signierung       |← Befehle ───│ Visualisierung / Logs |
-+-----------------------+             +-----------------------+
++------------------------+            +--------------------------+
+|       Satellite        |            |       Bodenstation       |
+|  (Raspberry Pi / Sim)  |            |     (Laptop / Server)    |
+|------------------------|            |--------------------------|
+| BME280 Sensor / Sim    |── CSV ───▶ | Receiver-Pipeline        |
+| Telemetry Logger       |            |  • RAW-Ingestion         |
+| HMAC-Signierung        |            |  • HMAC-Verifikation     |
++------------------------+            |  • Adaptive Security     |
+                                      |  • Routing (processed /  |
+                                      |    rejected / quarantine)|
+                                      +--------------------------+
 ```
 ---
 
 ## 📡 Telemetrie-Pipeline (ASCII-Diagramm)
 ```text
-           ┌──────────────────────────────┐
-           │        On-Board Computer     │
-           │        (Raspberry Pi 4)      │
-           ├──────────────────────────────┤
-           │ bme_log.py                   │
-           │  ├─ liest BME280 / Simulation│
-           │  ├─ signiert Datensatz (HMAC)│
-           │  └─ schreibt telemetry.csv   │
-           └──────────────┬───────────────┘
-                          │   (scp / net)
-                          ▼
-           ┌──────────────────────────────-┐
-           │        Ground Station         │
-           │            (Mac)              │
-           ├──────────────────────────────-┤
-           │ receiver.py                   │
-           │  ├─ empfängt CSV-Datei        │
-           │  ├─ prüft Signatur (verify.py)│
-           │  ├─ schreibt → raw/           │
-           │  ├─ gültig → processed/       │
-           │  └─ ungültig → rejected/      │
-           │                               │
-           │ plot.py                       │
-           │  └─ visualisiert Telemetrie   │
-           └──────────────┬────────────────┘
-                          │
-                          ▼
-           ┌──────────────────────────────┐
-           │       data/-Verzeichnis      │
-           │  raw/        → eingehende CSV│
-           │  processed/  → geprüfte Daten│
-           │  rejected/   → fehlerhafte   │
-           │  archive/    → alte Missionen│
-           └──────────────────────────────┘
+Satellite
+  └─ Sensor lesen
+  └─ Payload formatieren
+  └─ HMAC-Signatur erzeugen
+  └─ CSV-Zeile anhängen
+
+Ground Station
+  RAW → VERIFY → SECURITY →
+     ├─ processed/
+     ├─ rejected/
+     └─ quarantine/
+
+
+Die Pipeline ist bewusst pull-basiert (z. B. via scp) gehalten, um Robustheit und Nachvollziehbarkeit zu gewährleisten.
 ```
 ---
 
-## 🔐 Sicherheits­ebene
-- Jedes Telemetriepaket wird mit **HMAC-SHA256** und einem geheimen Schlüssel signiert.
-- Die Empfängerseite überprüft die Signatur und verwirft manipulierte oder wiederholte Pakete.
-- Alle Ereignisse werden in **security.log** protokolliert.
+## 🔐 Adaptive Sicherheits­ebene
+Die Bodenstation enthält einen Adaptive Security Manager mit folgenden Eigenschaften:
+ - Gleitendes Analysefenster
+ - Gewichtete Fehlertypen
+ - Erkennung aufeinanderfolgender Fehler
+ - Temporäre Lockouts
+ - Konfigurierbares Verhalten:
+ - drop
+ - reject
+ - quarantine
+
+Alle sicherheitsrelevanten Ereignisse werden protokolliert in:
+ - security.log (lesbar für Menschen)
+ - security_audit.jsonl (maschinenlesbar)
+
 
 ---
 
@@ -122,34 +121,33 @@ Es soll Studierenden, Entwicklern und Ingenieuren als Inspiration dienen, wie ma
 
 ```text
 CubeSat/
-├── cube/                      # Hauptprojekt: Code und Dokumentation
-│   ├── obc/                   # On-Board Computer (Raspberry Pi)
-│   │   ├── bme_log.py         # Erfassung der Sensordaten (BME280)
-│   │   ├── hmac_sign.py       # HMAC-Signierung der Telemetrie
-│   │   └── config.json        # Gerätekonfiguration (Keys, Sensor-ID, etc.)
-│   │
-│   ├── ground/                # Bodenstation (Laptop / Server)
-│   │   ├── receiver.py        # Empfang von Telemetriedaten
-│   │   ├── verify.py          # Signaturprüfung der Datensätze
-│   │   └── plot.py            # Visualisierung & Diagramme
-│   │
-│   └── docs/                  # Missionsdokumentation & Architektur
-│       ├── architecture.png
-│       ├── mission_report_1.md
-│       ├── mission_report_2.md
-│       └── hardware/          # lokale Fotos, nicht versioniert (.gitignore)
+├── satellite/              # On-Board Computer
+│   └── src/satellite/
+│       ├── logger.py
+│       └── sensors/
+│           └── bme280.py
 │
-├── data/                      # Missionsdaten (nicht versioniert)
-│   ├── raw/                   # unbearbeitete Daten direkt vom OBC
-│   ├── processed/             # validierte & bereinigte Datensätze
-│   ├── reports/               # Berichte, Diagramme, Auswertungen
-│   ├── archive/               # ältere archivierte Datensätze (ZIP)
-│   └── rejected/              # ungültige Datensätze (Signaturfehler)
+├── ground/                 # Bodenstation
+│   └── src/ground/
+│       ├── receiver.py
+│       └── security/
+│           └── security_manager.py
 │
-├── venv/                      # Virtuelle Python-Umgebung
-├── .gitignore
-├── README.md
-└── requirements.txt
+├── shared/                 # Gemeinsames Protokoll & Kryptographie
+│   └── src/shared/
+│       ├── crypto/
+│       └── protocol/
+│
+├── configs/
+│   ├── satellite.json
+│   └── security_policy.yaml
+│
+├── tests/
+│   ├── unit/
+│   └── integration/
+│
+├── requirements*.txt
+└── README.md
 ```
 ---
 
@@ -173,99 +171,16 @@ pip install -r requirements.txt
 
 ---
 
-## 🗓️ Mission Timeline
+## 🧭 Mission Timeline
 
-| Phase | Status | Description |
-|--------|---------|-------------|
-| 🧭 **Pre-Launch Setup** | ✅ Completed | Repository initialized, Python environment created, project structure defined. |
-| 🛰️ **System Architecture Build** | ✅ Completed | OBC and Ground Station modules implemented, telemetry flow verified. |
-| 📊 **Telemetry Visualization** | ✅ Completed | CSV data logging and real-time plotting functional. |
-| 🔐 **Security Layer Integration** | 🚧 In Progress | Implementing HMAC-SHA256 data signing and verification. |
-| 🌐 **Live Data Link (Raspberry → Ground)** | ⏳ Planned | Establish real MQTT/HTTP communication channel. |
-| 🚀 **Mission Control Dashboard** | ⏳ Planned | Streamlit interface for monitoring telemetry and events. |
-
----
-
-## 🧭 Mission Log
-
-| Date       | Phase / Update | Summary |
-|-------------|----------------|----------|
-| **2025-11-03** | 🛰️ *Pre-Launch Complete* | Initial repository structure established. On-Board Computer (OBC) and Ground Station modules implemented. Basic telemetry simulation and real-time plotting verified. |
-| **2025-11-03** | 🧩 *Mission Documentation* | README structured with system architecture, technology stack, and installation guide. Mission Log initialized for ongoing development tracking. |
-
----
-
-## 📂 Datenstruktur (Bodenstation)
-
-Alle Telemetriedaten, die vom Bordcomputer (Raspberry Pi / OBC) empfangen werden, werden im Verzeichnis **`data/`** gespeichert und verarbeitet.
-Diese Struktur dient der klaren Organisation, Validierung und Archivierung der Missionsdaten.
-```text
-data/
-├─ raw/obc/YYYY/YYYY-MM/telemetry_YYYY-MM-DD[_HH]_obc.csv   # Rohdaten direkt vom Bordcomputer
-├─ processed/                                                # geprüfte und bereinigte Daten
-├─ reports/                                                  # Berichte, Diagramme, Auswertungen
-├─ archive/                                                  # ältere archivierte Daten (z. B. ZIP)
-└─ rejected/                                                 # verworfene Datensätze (ungültige Signatur)
-```
----
-
-### 🧩 Format der Telemetrie-Dateien (CSV)
-
-Jede Zeile repräsentiert eine einzelne Messung der Sensoren.
-Die Datei enthält immer eine Kopfzeile mit folgenden Spalten:
-
-ts,temperature_c,humidity_pct,pressure_hpa,mode,sig
-
-**Spaltenbeschreibung:**
-
-| Feld | Typ | Beschreibung |
-|------|------|--------------|
-| `ts` | Datum/Zeit (UTC) | Zeitstempel im ISO 8601-Format, z. B. `2025-11-05T14:15:00Z` |
-| `temperature_c` | Float | Temperatur in °C |
-| `humidity_pct` | Float | Luftfeuchtigkeit in % |
-| `pressure_hpa` | Float | Luftdruck in hPa |
-| `mode` | String | Modus: `sim` (Simulation) oder `real` (Realdaten) |
-| `sig` | String | HMAC-Signatur des Datensatzes (hexadezimal) |
-
----
-
-### 🗂️ Benennung der Dateien
-```text
-telemetry_YYYY-MM-DD_obc.csv        # Tageslog
-telemetry_YYYY-MM-DDTHH_obc.csv     # Stundenlog bei hohem Datenvolumen
-```
-**Beispiele:**
-```text
-telemetry_2025-11-05_obc.csv
-telemetry_2025-11-05T14_obc.csv
-```
-🕒 Alle Zeitstempel und Dateinamen verwenden **UTC-Zeit**, um Verwechslungen mit Zeitzonen zu vermeiden.
-
----
-
-### 🔄 Datenfluss und Speicherung
-
-- Neue Dateien werden in `data/raw/obc/...` gespeichert
-- Nach erfolgreicher Signaturprüfung werden sie nach `data/processed/` verschoben
-- Ungültige Dateien kommen nach `data/rejected/`
-- Alte Datensätze werden regelmäßig nach `data/archive/` archiviert
-- Auswertungen und Diagramme liegen in `data/reports/`
-
----
-
-### 🚫 Git-Ignore-Regeln
-
-Um das Repository sauber zu halten, werden reale Daten nicht versioniert.
-In `.gitignore` sind folgende Regeln eingetragen:
-```text
-data/raw/
-data/processed/
-data/archive/
-data/rejected/
-*.zip
-*.7z
-```
-In jeder Unterordner befindet sich eine `.gitkeep`-Datei, damit die Struktur im Repository erhalten bleibt.
+| Phase | Status | Beschreibung |
+|------|--------|--------------|
+| 🧭 **Pre-Launch & Architektur** | ✅ Abgeschlossen | Projektinitialisierung, Repository-Struktur, klare Trennung von `satellite`, `ground` und `shared`. |
+| 🛰️ **Core Telemetrie-Pipeline** | ✅ Abgeschlossen | Sichere Erzeugung, Signierung und Verarbeitung von Telemetriedaten (CSV + HMAC). |
+| 🔐 **Adaptive Sicherheitsebene** | ✅ Abgeschlossen | Implementierung des Security Managers mit Lockout-, Quarantäne- und Audit-Logik. |
+| 🧪 **Testing & Validation** | ✅ Abgeschlossen | Umfassende Unit-, Integrations- und Security-Tests für Satellite und Ground Station (49 Tests). |
+| 🤖 **CI / GitHub Actions** | ⏳ Geplant | Automatisierter Testlauf bei Push & Pull Requests. |
+| 🚀 **Live-Hardware-Mission** | ⏳ Geplant | Betrieb auf realer Hardware (Raspberry Pi + BME280) mit echter Telemetrie. |
 
 ---
 
@@ -277,8 +192,8 @@ In jeder Unterordner befindet sich eine `.gitkeep`-Datei, damit die Struktur im 
 
 ---
 
-📘 *Dokument aktualisiert: November 2025 — Version 1.0 Datenstruktur-Spezifikation*
+📘 *Dokument aktualisiert: Januar 2026*
 
 ---
 
-📡 *Next Phase:* Integration of live BME280 sensor data and secure HMAC transmission from Raspberry Pi → Ground Station.
+📡 *Next Phase:* Live Communication & Data Link
