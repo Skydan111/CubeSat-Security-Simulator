@@ -1,57 +1,45 @@
 # 🛰️ CubeSat Security Simulator
 
-> **Mission Phase:** 🧪 Phase 3 — Testing & Validation (abgeschlossen)
-> **Status:** ✅ Kernsystem stabil
+> **Mission Phase:** Testing & Validation (abgeschlossen)
+> **Status:** Kernsystem stabil
 > **Last Update:** 2026-01-04
 
-## 📘 Inhaltsverzeichnis
-- [🚀 Missionsübersicht](#-missionsübersicht)
-- [🌌 Motivation & Vision](#-motivation--vision)
-- [🎯 Missionsziele](#-missionsziele)
-- [🧩 Systemarchitektur](#-systemarchitektur)
-- [📡 Telemetrie-Pipeline](#-telemetrie-pipeline)
-- [🔐 Adaptive Sicherheitsebene](#-adaptivesicherheitsebene)
-- [🧠 Technologien](#-technologien)
-- [📦 Projektstruktur](#-projektstruktur)
-- [⚙️ Installation](#️-installation)
-- [👨‍🚀 Autor](#-autor)
-- [🗓️ Mission Timeline](#️-mission-timeline)
-- [📂 Datenstruktur (Bodenstation)](#-datenstruktur-bodenstation)
+## Inhaltsverzeichnis
+- [Missionsübersicht](#-missionsübersicht)
+- [Zielsetzung](#-zielsetzung)
+- [Systemarchitektur](#-systemarchitektur)
+- [Telemetrie-Pipeline](#-telemetrie-pipeline)
+- [Sicherheitskonzept](#-sicherheitskonzept)
+- [Teststrategie](#-teststrategie)
+- [Technologien](#-technologien)
+- [Projektstruktur](#-projektstruktur)
+- [Installation & Tests](#️-installation&tests)
+- [Autor](#-autor)
+- [Mission Timeline](#️-mission-timeline)
+- [Datenstruktur (Bodenstation)](#-datenstruktur-bodenstation)
 
 
-## 🚀 Missionsübersicht
-Der CubeSat Security Simulator ist ein lern- und ingenieurorientiertes Projekt zur Simulation eines sicheren CubeSat-Telemetriesystems mit klar getrennter Architektur:
- - On-Board Computer (Satellite)
- - Ground Station (Bodenstation)
- - Shared Protocol & Kryptographie
+## Missionsübersicht
+Der **CubeSat Security Simulator** ist ein ingenieurorientiertes Lernprojekt zur Simulation eines sicheren Telemetriesystems für einen CubeSat.
 
-Der Fokus liegt auf Datenintegrität, sicherer Verarbeitung von Telemetrie sowie auf robuster Fehler- und Angriffsbehandlung, angelehnt an reale CubeSat- und Raumfahrtarchitekturen.
-
-
----
-
-## 🌌 Motivation & Vision
-Moderne CubeSats und vernetzte Raumfahrt-/IoT-Systeme sind stark von zuverlässiger und sicherer Telemetrie abhängig.
-Dieses Projekt entstand aus dem Wunsch, praxisnah zu verstehen:
- - wie Sensordaten an Bord eines Satelliten erzeugt werden,
- - wie diese Daten kryptographisch abgesichert werden können,
- - wie eine Bodenstation Daten verifiziert, klassifiziert und sicher verarbeitet.
-
-Ziel ist kein reines Demo-Projekt, sondern ein sauber strukturiertes, testbares und nachvollziehbares System, das reale ingenieurtechnische Prinzipien widerspiegelt.
+Das Projekt modelliert die vollständige Datenkette von der Telemetrieerzeugung auf dem On-Board Computer bis zur Verifikation und Verarbeitung auf der Bodenstation.
+Der Fokus liegt auf **Datenintegrität, Sicherheit, klarer Architektur und Testbarkeit**.
 
 
 ---
 
-## 🎯 Missionsziele
- - Simulation eines CubeSat-On-Board-Computers (Raspberry Pi + BME280)
- - Signierung jedes Telemetriepakets mit HMAC-SHA256
- - Robuste Verifikation auf der Bodenstation
- - Adaptive Sicherheitslogik (Lockout, Quarantäne, Reject)
- - Vollständige Unit-, Integrations- und Security-Tests
+## Zielsetzung
+
+- Simulation eines CubeSat-On-Board-Computers (Satellite)
+- Erfassung von Sensordaten (BME280 oder Simulation)
+- Kryptographische Absicherung der Telemetrie mittels HMAC-SHA256
+- Verifikation und Klassifikation eingehender Daten auf der Bodenstation
+- Robuste Behandlung fehlerhafter oder manipulierter Pakete
+- Vollständige Unit-, Integrations- und Security-Tests
 
 ---
 
-## 🧩 Systemarchitektur
+## Systemarchitektur
 
 ```text
 +------------------------+            +--------------------------+
@@ -87,25 +75,59 @@ Die Pipeline ist bewusst pull-basiert (z. B. via scp) gehalten, um Robustheit un
 ```
 ---
 
-## 🔐 Adaptive Sicherheits­ebene
-Die Bodenstation enthält einen Adaptive Security Manager mit folgenden Eigenschaften:
- - Gleitendes Analysefenster
- - Gewichtete Fehlertypen
- - Erkennung aufeinanderfolgender Fehler
- - Temporäre Lockouts
- - Konfigurierbares Verhalten:
- - drop
- - reject
- - quarantine
+## Sicherheitskonzept
 
-Alle sicherheitsrelevanten Ereignisse werden protokolliert in:
- - security.log (lesbar für Menschen)
- - security_audit.jsonl (maschinenlesbar)
+### Kryptographie
+- HMAC-SHA256
+- Gemeinsamer geheimer Schlüssel (hexadezimal)
+- Signatur über den vollständigen Payload
 
+### Adaptive Sicherheitsebene (Ground Station)
+- Gleitendes Analysefenster
+- Gewichtete Fehlertypen
+- Erkennung aufeinanderfolgender Fehler
+- Temporäre Lockouts bei Anomalien
+- Konfigurierbare Reaktion:
+  - drop
+  - reject
+  - quarantine
+
+### Logging
+- `security.log` (lesbares Log)
+- `security_audit.jsonl` (maschinenlesbar)
 
 ---
 
-## 🧠 Technologien
+## Teststrategie
+
+Testing ist ein integraler Bestandteil des Projekts.
+
+### Abgedeckte Ebenen
+
+**Unit-Tests**
+- Kryptographie (HMAC)
+- Protokoll-Parsing (CSV / Signed Payload)
+- Security Manager (Policy, Lockout, Windowing)
+- Satellite Logger
+- Sensor-Abstraktion
+
+**Integrations-Tests**
+- End-to-End Satellite → Ground Pipeline
+- Nutzung realer Konfigurationsdateien
+- Verifikation der vollständigen Datenkette
+
+**Security-Tests**
+- Manipulierte Payloads (Tampering)
+- Ungültige oder abgeschnittene Pakete
+- Lockout- und Quarantäneverhalten
+
+Aktueller Stand:
+- 49 Tests
+- Alle Tests erfolgreich (`pytest -q`)
+
+---
+
+## Technologien
 | Komponente | Technologie |
 |-------------|-------------|
 | Hardware | Raspberry Pi 4 B (4 GB), BME280 Sensor |
@@ -117,7 +139,7 @@ Alle sicherheitsrelevanten Ereignisse werden protokolliert in:
 
 ---
 
-## 📦 Projektstruktur
+## Projektstruktur
 
 ```text
 CubeSat/
@@ -151,40 +173,45 @@ CubeSat/
 ```
 ---
 
-## ⚙️ Installation
+## Installation & Tests
 ```bash
 git clone https://github.com/olegskydan/CubeSat-Security-Simulator.git
 cd CubeSat-Security-Simulator
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
+pytest -q
 ```
----
-
-## 👨‍🚀 Autor
-
-**Oleg Skydan**
-*Student · Wirtschaftsinformatik · Fachschule Wiesau*
-**Interessen:** Space Tech · Cybersecurity · IoT-Systeme
-
-💡 *„Jede große Mission beginnt klein – manchmal auf einem Breadboard.“*
 
 ---
 
-## 🧭 Mission Timeline
+## Mission Timeline
 
 | Phase | Status | Beschreibung |
 |------|--------|--------------|
-| 🧭 **Pre-Launch & Architektur** | ✅ Abgeschlossen | Projektinitialisierung, Repository-Struktur, klare Trennung von `satellite`, `ground` und `shared`. |
-| 🛰️ **Core Telemetrie-Pipeline** | ✅ Abgeschlossen | Sichere Erzeugung, Signierung und Verarbeitung von Telemetriedaten (CSV + HMAC). |
-| 🔐 **Adaptive Sicherheitsebene** | ✅ Abgeschlossen | Implementierung des Security Managers mit Lockout-, Quarantäne- und Audit-Logik. |
-| 🧪 **Testing & Validation** | ✅ Abgeschlossen | Umfassende Unit-, Integrations- und Security-Tests für Satellite und Ground Station (49 Tests). |
-| 🤖 **CI / GitHub Actions** | ⏳ Geplant | Automatisierter Testlauf bei Push & Pull Requests. |
-| 🚀 **Live-Hardware-Mission** | ⏳ Geplant | Betrieb auf realer Hardware (Raspberry Pi + BME280) mit echter Telemetrie. |
+| Pre-Launch & Architektur | Abgeschlossen | Projektstruktur, Modultrennung, Architekturdefinition |
+| Core Telemetrie-Pipeline | Abgeschlossen | Signierung und Verarbeitung der Telemetriedaten |
+| Adaptive Sicherheitsebene | Abgeschlossen | Security Manager, Lockout- und Audit-Logik |
+| Phase 3: Testing & Validation | Abgeschlossen | Unit-, Integrations- und Security-Tests |
+| Phase 4: Secure Satellite-to-Ground Communication | Geplant | Reale Datenübertragung (z. B. MQTT) |
+| Live-Hardware-Betrieb | Geplant | Betrieb auf realer Hardware |
 
 ---
 
-### 🛰️ Datenfluss (Überblick)
+## Autor
+
+Oleg Skydan
+Student Wirtschaftsinformatik – Fachschule Wiesau
+
+Schwerpunkte:
+- Cybersecurity
+- Embedded Systems
+- Distributed Systems
+- Secure Communication
+
+---
+
+### Datenfluss (Überblick)
 
 1. **OBC (On-Board Computer)** auf dem Raspberry Pi erzeugt Telemetriedaten und schreibt sie lokal in CSV-Dateien.
 2. **Ground Station (Mac)** empfängt diese Dateien regelmäßig (z. B. über `scp`, `MQTT` oder `HTTP`) und legt sie in `data/raw/obc/` ab.
@@ -192,8 +219,8 @@ pip install -r requirements.txt
 
 ---
 
-📘 *Dokument aktualisiert: Januar 2026*
+*Dokument aktualisiert: Januar 2026*
 
 ---
 
-📡 *Next Phase:* Live Communication & Data Link
+*Next Phase:* Live Communication & Data Link
