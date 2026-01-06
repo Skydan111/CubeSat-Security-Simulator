@@ -1,0 +1,4 @@
+# Satellite-spezifische Abhängigkeiten
+paho-mqtt==1.6.1
+# Für BME280
+adafruit-circuitpython-bme280==2.6.20
