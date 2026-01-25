@@ -6,8 +6,9 @@ from typing import Optional
 
 import paho.mqtt.client as mqtt
 
-from shared.comm.envelope import EnvelopeV1
+from shared.comm.envelope import EnvelopeV1, bytes_from_b64
 from shared.comm.topics import telemetry_topic
+from shared.protocol.signed_csv import verify_signed_line
 
 
 def _env(name: str, default: str) -> str:
@@ -29,22 +30,47 @@ def on_connect(client: mqtt.Client, userdata: object, flags: dict, rc: int) -> N
 
 
 def on_message(client: mqtt.Client, userdata: object, msg: mqtt.MQTTMessage) -> None:
-    # Callback: wird bei eingehenden Nachrichten aufgerufen.
     raw = msg.payload.decode("utf-8", errors="replace")
 
     try:
         env = EnvelopeV1.from_json(raw)
-        print(f"[ground] RX topic={msg.topic} msg_id={env.msg_id} ts={env.ts_utc}")
+
+        signed_bytes = bytes_from_b64(env.payload_b64)
+        signed_line = signed_bytes.decode("utf-8")
+
+        secret_hex = userdata["secret_hex"]  # type: ignore[index]
+
+        if not verify_signed_line(signed_line, secret_hex):
+            print(
+                f"[ground] REJECT msg_id={env.msg_id} reason=invalid_signature",
+                file=sys.stderr,
+            )
+            return
+
+        print(
+            f"[ground] ACCEPT msg_id={env.msg_id} ts={env.ts_utc} payload={signed_line}"
+        )
+
     except Exception as e:
-        print(f"[ground] Invalid message on {msg.topic}: {e} raw={raw}", file=sys.stderr)
+        print(
+            f"[ground] ERROR topic={msg.topic} err={e}",
+            file=sys.stderr,
+        )
 
 
 def main() -> int:
     broker_host = _env("MQTT_BROKER_HOST", "localhost")
     broker_port = int(_env("MQTT_BROKER_PORT", "1883"))
     sat_id = _env("SAT_ID", "SAT-001")
+    secret_hex = _env("SAT_SECRET_HEX", "deadbeef")
 
-    client = mqtt.Client(client_id=f"ground-{sat_id}", userdata={"sat_id": sat_id})
+    client = mqtt.Client(
+        client_id=f"ground-{sat_id}",
+        userdata={
+            "sat_id": sat_id,
+            "secret_hex": secret_hex,
+            },
+            )
     client.on_connect = on_connect
     client.on_message = on_message
 
