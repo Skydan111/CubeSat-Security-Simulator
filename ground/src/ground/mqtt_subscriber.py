@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 from shared.comm.envelope import EnvelopeV1, bytes_from_b64
 from shared.comm.topics import telemetry_topic
 from shared.protocol.signed_csv import verify_signed_line
+from ground.mqtt_guard import GuardConfig, MqttMessageGuard
 
 
 def _env(name: str, default: str) -> str:
@@ -35,27 +36,33 @@ def on_message(client: mqtt.Client, userdata: object, msg: mqtt.MQTTMessage) -> 
     try:
         env = EnvelopeV1.from_json(raw)
 
+        guard: MqttMessageGuard = userdata["guard"]  # type: ignore[index]
+
+        # 1) Dedup
+        if guard.is_duplicate(env.sat_id, env.msg_id):
+            print(f"[ground] DROP_DUPLICATE msg_id={env.msg_id}", file=sys.stderr)
+            return
+
+        # 2) Freshness
+        if not guard.is_fresh(env.ts_utc):
+            print(f"[ground] DROP_STALE msg_id={env.msg_id} ts={env.ts_utc}", file=sys.stderr)
+            return
+
+        # 3) Decode Signed Payload
         signed_bytes = bytes_from_b64(env.payload_b64)
         signed_line = signed_bytes.decode("utf-8")
 
+        # 4) Verify signature
         secret_hex = userdata["secret_hex"]  # type: ignore[index]
-
         if not verify_signed_line(signed_line, secret_hex):
-            print(
-                f"[ground] REJECT msg_id={env.msg_id} reason=invalid_signature",
-                file=sys.stderr,
-            )
+            print(f"[ground] REJECT_BAD_SIG msg_id={env.msg_id}", file=sys.stderr)
             return
 
-        print(
-            f"[ground] ACCEPT msg_id={env.msg_id} ts={env.ts_utc} payload={signed_line}"
-        )
+        # 5) ACCEPT (Pipeline-Integration kommt im nächsten Schritt)
+        print(f"[ground] ACCEPT msg_id={env.msg_id} ts={env.ts_utc} payload={signed_line}")
 
     except Exception as e:
-        print(
-            f"[ground] ERROR topic={msg.topic} err={e}",
-            file=sys.stderr,
-        )
+        print(f"[ground] ERROR topic={msg.topic} err={type(e).__name__}: {e}", file=sys.stderr)
 
 
 def main() -> int:
@@ -63,12 +70,16 @@ def main() -> int:
     broker_port = int(_env("MQTT_BROKER_PORT", "1883"))
     sat_id = _env("SAT_ID", "SAT-001")
     secret_hex = _env("SAT_SECRET_HEX", "deadbeef")
+    dedup_size = int(_env("DEDUP_CACHE_SIZE", "500"))
+    max_skew = int(_env("MAX_SKEW_SECONDS", "120"))
+    guard = MqttMessageGuard(GuardConfig(dedup_size=dedup_size, max_skew_seconds=max_skew))
 
     client = mqtt.Client(
         client_id=f"ground-{sat_id}",
         userdata={
             "sat_id": sat_id,
             "secret_hex": secret_hex,
+            "guard": guard,
             },
             )
     client.on_connect = on_connect
