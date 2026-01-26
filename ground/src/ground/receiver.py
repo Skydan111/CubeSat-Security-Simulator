@@ -178,6 +178,48 @@ def handle_line(
         append_line(REJ_PATH, out_line)
         print(f"[REJECTED] {verify_reason}")
 
+def handle_verified_line(
+    line: str,
+    secman: Optional[object] = None,
+    source: str = "unknown",
+    quarantine_path: Optional[Path] = None
+) -> None:
+    """
+    Verarbeitet eine bereits verifizierte Telemetrie-Zeile (Signatur wurde extern geprüft).
+    Beibehält Lockout-Logik und Pipeline-Routing (PROCESSED / QUARANTINE / REJECTED).
+    """
+    if not line.strip():
+        return
+
+    pkt_id = (line.split(",", 1)[0] or f"ts-{int(datetime.datetime.now(datetime.UTC).timestamp())}").strip()
+    meta = {"source": source, "packet_id": pkt_id, "len": len(line), "transport": "mqtt"}
+
+    # 0) Lockout vor Verarbeitung prüfen (wie in handle_line)
+    if secman and hasattr(secman, "on_packet_before_verify"):
+        if not secman.on_packet_before_verify(meta):
+            action = getattr(secman, "action_when_locked", lambda: "reject")()
+            reason = "lockout_active"
+            if action == "drop":
+                print(f"[LOCKED] dropped id={pkt_id}")
+                return
+            elif action == "quarantine":
+                qpath = quarantine_path or Path("data/quarantine/telemetry.csv")
+                append_line(qpath, line.rstrip() + f",reason={reason}")
+                print(f"[LOCKED] quarantined id={pkt_id}")
+                return
+            else:
+                append_line(REJ_PATH, line.rstrip() + f",reason={reason}")
+                print(f"[LOCKED] rejected id={pkt_id}")
+                return
+
+    # 1) SecurityManager informieren: ok=true (weil Signatur schon geprüft wurde)
+    if secman and hasattr(secman, "on_verification_result"):
+        secman.on_verification_result(ok=True, reason="ok", meta=meta)
+
+    # 2) Routing: verifizierte Zeile -> PROCESSED
+    append_line(PROC_PATH, line)
+    print("[OK] processed (mqtt)")
+
 def ingest_raw_line(line: str) -> None:
     """Schreibt eine unveränderte Zeile in RAW (Eingangsspur)."""
     append_line(RAW_PATH, line)

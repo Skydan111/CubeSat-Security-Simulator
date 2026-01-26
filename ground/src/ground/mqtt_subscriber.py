@@ -10,6 +10,9 @@ from shared.comm.envelope import EnvelopeV1, bytes_from_b64
 from shared.comm.topics import telemetry_topic
 from shared.protocol.signed_csv import verify_signed_line
 from ground.mqtt_guard import GuardConfig, MqttMessageGuard
+from ground.receiver import ingest_raw_line, handle_verified_line
+from ground.security.security_manager import SecurityManager
+from pathlib import Path
 
 
 def _env(name: str, default: str) -> str:
@@ -59,7 +62,21 @@ def on_message(client: mqtt.Client, userdata: object, msg: mqtt.MQTTMessage) -> 
             return
 
         # 5) ACCEPT (Pipeline-Integration kommt im nächsten Schritt)
-        print(f"[ground] ACCEPT msg_id={env.msg_id} ts={env.ts_utc} payload={signed_line}")
+        secman = userdata["secman"]  # type: ignore[index]
+        qpath = userdata["quarantine_path"]  # type: ignore[index]
+
+        # Optional: RAW Spur für Forensik/Debug (unverändert)
+        ingest_raw_line(signed_line)
+
+        # Übergabe an die bestehende Pipeline (ohne erneute Signaturprüfung)
+        handle_verified_line(
+            signed_line,
+            secman=secman,
+            source="mqtt",
+            quarantine_path=qpath,
+        )
+
+        print(f"[ground] ACCEPT msg_id={env.msg_id} ts={env.ts_utc}")
 
     except Exception as e:
         print(f"[ground] ERROR topic={msg.topic} err={type(e).__name__}: {e}", file=sys.stderr)
@@ -70,6 +87,11 @@ def main() -> int:
     broker_port = int(_env("MQTT_BROKER_PORT", "1883"))
     sat_id = _env("SAT_ID", "SAT-001")
     secret_hex = _env("SAT_SECRET_HEX", "deadbeef")
+
+    policy_path = _env("SECURITY_POLICY_PATH", "configs/security_policy.yaml")
+    secman = SecurityManager(policy_path=policy_path)
+
+    quarantine_path = Path("data/quarantine/telemetry.csv")
     dedup_size = int(_env("DEDUP_CACHE_SIZE", "500"))
     max_skew = int(_env("MAX_SKEW_SECONDS", "120"))
     guard = MqttMessageGuard(GuardConfig(dedup_size=dedup_size, max_skew_seconds=max_skew))
@@ -80,6 +102,8 @@ def main() -> int:
             "sat_id": sat_id,
             "secret_hex": secret_hex,
             "guard": guard,
+            "secman": secman,
+            "quarantine_path": quarantine_path,
             },
             )
     client.on_connect = on_connect
