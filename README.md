@@ -24,13 +24,13 @@ End-to-end abgesicherte Telemetrie-Pipeline von einem simulierten CubeSat-Satell
 │   Satellite (Raspberry Pi / Sim)    │
 ├─────────────────────────────────────┤
 │  BME280 Sensor / Simulation         │
-│           ↓                          │
+│           ↓                         │
 │  Telemetry Format                   │
 │  ts,temp,hum,press,mode             │
-│           ↓                          │
+│           ↓                         │
 │  HMAC-SHA256 Signing                │
 │  (Shared Secret)                    │
-│           ↓                          │
+│           ↓                         │
 │  MQTT Publisher                     │
 │  Envelope V1 (JSON + Base64)        │
 └─────────────────────────────────────┘
@@ -44,23 +44,23 @@ End-to-end abgesicherte Telemetrie-Pipeline von einem simulierten CubeSat-Satell
 │      Ground Station (macOS)         │
 ├─────────────────────────────────────┤
 │  MQTT Subscriber                    │
-│           ↓                          │
+│           ↓                         │
 │  Envelope Validation                │
 │  (Schema, Required Fields)          │
-│           ↓                          │
+│           ↓                         │
 │  Deduplication                      │
 │  (msg_id LRU Cache)                 │
-│           ↓                          │
+│           ↓                         │
 │  Freshness Check                    │
 │  (ts_utc ± MAX_SKEW)                │
-│           ↓                          │
+│           ↓                         │
 │  HMAC Verification                  │
 │  (Constant-Time Compare)            │
-│           ↓                          │
+│           ↓                         │
 │  Decision & Routing                 │
 │  • Lockout-Check                    │
 │  • Security Event Logging           │
-│           ↓                          │
+│           ↓                         │
 │  Storage                            │
 │  ├─ data/processed/    (valid)      │
 │  ├─ data/rejected/     (bad sig)    │
