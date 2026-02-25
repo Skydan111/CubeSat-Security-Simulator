@@ -5,7 +5,14 @@ Make the repository job-fair-ready: clean, reproducible, well-documented, and ea
 
 ## Project Snapshot
 Secure MQTT telemetry simulator:
-Satellite (Raspberry Pi + BME280) → HMAC-SHA256 signing → MQTT → Ground Station → dedup → freshness/anti-replay → signature verify → routing (processed/rejected/quarantine).
+Satellite (Raspberry Pi + BME280)
+ → HMAC-SHA256 signing
+ → MQTT
+ → Ground Station
+ → dedup
+ → freshness/anti-replay
+ → signature verify
+ → routing (processed/rejected/quarantine).
 
 Status:
 - Working end-to-end
@@ -98,7 +105,77 @@ Move/rename if present:
 
 Update any references in code/tests if necessary. Behavior must remain unchanged.
 
-## 3) Docs cleanup and re-linking (must do)
+## 3) Reproducible Dev Setup (must do before docs rewrite)
+
+### Goal
+
+Ensure the project is fully reproducible from a clean environment.
+`pytest` must pass in a fresh virtual environment created strictly according to the README instructions.
+
+This is not a new feature.
+This is packaging and reproducibility hygiene required for job-fair readiness.
+
+---
+
+### Target Python
+
+- Officially support and document **Python 3.11**
+- Do not claim support for 3.13 unless all tests pass in a clean 3.13 environment
+- README must clearly state the supported version
+
+---
+
+### Required Actions
+
+1. Verify that all runtime and test dependencies are properly declared.
+   - If missing dependencies are detected (e.g. `paho-mqtt`), add them to the appropriate requirements file.
+   - Do not introduce new libraries that are not already used by the project.
+   - This step is strictly declarative (fix missing declarations only).
+
+2. Ensure local packages are installable in editable mode:
+   - `pip install -e shared`
+   - `pip install -e ground`
+   - `pip install -e satellite`
+
+   The project must not rely on implicit `PYTHONPATH` behavior.
+
+3. Define a single canonical installation path for development:
+
+   Example (to be documented in README):
+
+   ```bash
+   python3.11 -m venv .venv
+   source .venv/bin/activate
+
+   pip install -r requirements.txt
+   pip install -r requirements-dev.txt
+
+   pip install -e shared
+   pip install -e ground
+   pip install -e satellite
+
+   pytest
+   ```
+
+4.	Validate that:
+	- In a freshly created .venv
+	- With only the documented commands executed
+	- pytest completes successfully
+	- All tests pass
+
+### Hard Constraints
+	- Do not modify protocol, crypto, routing, or core logic.
+	- Do not refactor project structure.
+	- Do not introduce new architectural elements.
+	- Only fix dependency declarations and installation reproducibility.
+
+### Acceptance Criteria
+	- Fresh .venv → install via documented commands → pytest = green.
+	- No manual path hacks.
+	- No undeclared dependencies.
+	- README Quickstart reflects the validated installation flow.
+
+## 4) Docs cleanup and re-linking (must do)
 Goal: high-signal docs for interviewers.
 
 Create/ensure these files exist:
@@ -113,7 +190,7 @@ If content exists under `docs/design/`:
 
 Keep `docs/mission_reports/` as “engineering log” (secondary).
 
-## 4) README Rewrite Specification (German, professional tone)
+## 5) README Rewrite Specification (German, professional tone)
 
 Rewrite README.md completely.
 
@@ -179,12 +256,12 @@ Remove:
 - Outdated dates
 - Inconsistent claims
 
-## 5) German description + 2-min pitch (must do)
+## 6) German description + 2-min pitch (must do)
 Write `docs/pitch_de.md` containing:
 - Kurzbeschreibung (3–6 Sätze)
 - 2-Minuten Elevator Pitch (spoken style)
 
-## 6) Code comment normalization (German, explain WHY)
+## 7) Code comment normalization (German, explain WHY)
 Scope:
 - `ground/src/ground/**/*.py`
 - `satellite/src/satellite/**/*.py`
@@ -197,7 +274,7 @@ Rules:
 - Do not touch core logic or tests unless required for consistency
 - Only change comments/docstrings. No refactoring, no renaming, no reformatting code lines.
 
-## 7) Final verification and report (mandatory)
+## 8) Final verification and report (mandatory)
 - Run `pytest`
 - Show `git status --porcelain`
 - Provide a clear summary:

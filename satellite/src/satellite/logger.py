@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+"""
+Satellite Logger – Erfasst Sensordaten (BME280) und schreibt signierte Telemetrie in CSV.
+
+Liest Konfiguration aus configs/satellite.json und signiert jeden Datensatz mit HMAC-SHA256.
+"""
 import csv, json, os, hmac, hashlib, time, pathlib, binascii
 from .sensors.bme280 import BME280Reader
 from shared.protocol.telemetry_csv import TelemetryUnsigned

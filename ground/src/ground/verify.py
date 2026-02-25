@@ -55,9 +55,10 @@ def verify_with_config(payload_bytes: bytes, mac_hex: str) -> bool:
 
 def verify_csv_line_with_config(line: str) -> bool:
     """
-    Проверяет строку телеметрии формата:
+    Verifiziert eine Telemetriezeile im Format:
     ts,temperature_c,humidity_pct,pressure_hpa,mode,sig
-    Секрет берётся из env HMAC_SECRET_HEX или из ground/config/ground.json
+
+    Secret wird aus HMAC_SECRET_HEX (env) oder ground/config/ground.json geladen.
     """
     secret = _load_secret_hex()
     return verify_signed_line(line, secret)

@@ -6,7 +6,11 @@ build-backend = "setuptools.build_meta"
 name = "cubesat-satellite"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["cubesat-shared"]
+dependencies = [
+    "cubesat-shared",
+    "paho-mqtt==1.6.1",
+    "adafruit-circuitpython-bme280==2.6.20"
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

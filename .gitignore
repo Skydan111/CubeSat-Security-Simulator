@@ -2,6 +2,7 @@
 venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 
 # macOS-Systemdateien
 .DS_Store
@@ -9,6 +10,7 @@ __pycache__/
 # IDE / Editor-Konfigurationen
 .vscode/
 .idea/
+.run/
 
 # Lokale virtuelle Umgebungen
 # (werden automatisch pro Gerät erstellt, nicht versioniert)
@@ -22,7 +24,8 @@ data/reports/
 data/archive/
 data/rejected/
 data/tmp/
-data/quarantine
+data/quarantine/
+!data/quarantine/.gitkeep
 *.zip
 *.7z
 
@@ -43,3 +46,8 @@ obc/config/*.json
 
 # build / packaging artifacts
 *.egg-info/
+
+# Generated test/runtime artifacts
+*.csv
+!examples/*.csv
+*.jsonl

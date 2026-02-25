@@ -6,7 +6,13 @@ build-backend = "setuptools.build_meta"
 name = "cubesat-ground"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["cubesat-shared"]
+dependencies = [
+    "cubesat-shared",
+    "paho-mqtt==1.6.1",
+    "pandas==2.1.4",
+    "matplotlib==3.8.2",
+    "pyyaml==6.0.1"
+]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

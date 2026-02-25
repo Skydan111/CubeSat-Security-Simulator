@@ -1,5 +1,9 @@
 from __future__ import annotations
+"""
+MQTT Publisher – Publiziert signierte Telemetrie via MQTT an die Ground Station.
 
+Erstellt Envelope V1 (JSON) mit Base64-kodiertem Signed Payload und sendet via QoS-1.
+"""
 
 import os
 import time

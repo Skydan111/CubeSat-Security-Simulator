@@ -1,3 +1,8 @@
+"""
+HMAC-SHA256 Signierung und Verifikation.
+
+Verwendet Constant-Time Compare (hmac.compare_digest) gegen Timing-Angriffe.
+"""
 import hmac
 import hashlib
 import binascii
