@@ -13,20 +13,14 @@ class TelemetrySigned:
 
 
 def format_signed_line(u: TelemetryUnsigned, secret_hex: str) -> str:
-    """
-    Возвращает полную CSV-строку для записи/передачи:
-    ts,temperature_c,humidity_pct,pressure_hpa,mode,sig
-    """
+
     payload = format_payload(u)
     sig = hmac_sign(payload, secret_hex)
     return f"{payload},{sig}"
 
 
 def parse_signed_line(line: str) -> TelemetrySigned:
-    """
-    Парсит строку вида:
-    ts,temperature_c,humidity_pct,pressure_hpa,mode,sig
-    """
+
     parts = line.strip().split(",")
     if len(parts) != 6:
         raise ValueError(f"Expected 6 CSV fields (with sig), got {len(parts)}: {parts}")
@@ -38,9 +32,7 @@ def parse_signed_line(line: str) -> TelemetrySigned:
 
 
 def verify_signed_line(line: str, secret_hex: str) -> bool:
-    """
-    Проверяет подпись строки (без учета заголовка).
-    """
+
     tsig = parse_signed_line(line)
     payload = format_payload(tsig.unsigned)
     return hmac_verify(payload, secret_hex, tsig.sig)

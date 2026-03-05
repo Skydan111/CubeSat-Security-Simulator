@@ -7,10 +7,10 @@ cd "$ROOT"
 source .venv/bin/activate
 
 export SAT_ID="${SAT_ID:-SAT-001}"
-export MQTT_BROKER_HOST="${MQTT_BROKER_HOST:-192.168.2.32}"   # IP твоего Mac
+export MQTT_BROKER_HOST="${MQTT_BROKER_HOST:-192.168.2.32}"
 export MQTT_BROKER_PORT="${MQTT_BROKER_PORT:-1883}"
 
-# Файл телеметрии, который пишет logger (должен совпадать с configs/satellite.json)
+
 export TELEMETRY_FILE="${TELEMETRY_FILE:-data/logs/telemetry.csv}"
 export PUBLISH_INTERVAL_S="${PUBLISH_INTERVAL_S:-2.0}"
 export START_FROM_END="${START_FROM_END:-1}"

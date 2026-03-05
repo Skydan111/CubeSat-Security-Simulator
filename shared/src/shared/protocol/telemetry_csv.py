@@ -16,7 +16,6 @@ class TelemetryUnsigned:
 
 
 def format_payload(u: TelemetryUnsigned) -> str:
-    # Канонический формат как в твоём реальном файле: ISO ts + 2 decimals
     return f"{u.ts},{u.temperature_c:.2f},{u.humidity_pct:.2f},{u.pressure_hpa:.2f},{u.mode}"
 
 

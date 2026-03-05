@@ -1,7 +1,6 @@
 import time, random
 from datetime import datetime, timezone
 
-# Пытаемся работать с реальным BME280
 try:
     import board, busio
     import adafruit_bme280
@@ -27,7 +26,7 @@ class BME280Reader:
                 "pressure_hpa": round(float(self.bme.pressure), 2),
                 "mode": "hardware"
             }
-        # --- симулятор ---
+
         t = time.time() - self.sim_start
         temp = 22.0 + 1.5 * (random.random() - 0.5) + 0.5 * (1 if int(t/30)%2==0 else -1)
         hum  = 45.0 + 5.0 * (random.random() - 0.5)

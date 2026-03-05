@@ -442,6 +442,21 @@ Siehe [docs/security.md](docs/security.md) für detaillierte Empfehlungen:
 
 ---
 
+## Technische Erkenntnisse aus diesem Projekt
+
+Dieses Projekt war für mich eine praktische Übung im systematischen Denken über Softwarearchitektur.
+Ich habe eine Telemetrie-Pipeline mit klar getrennten Komponenten (Satellite, Shared, Ground) entworfen und Datenflüsse bewusst strukturiert.
+
+Während der Entwicklung musste ich technische Entscheidungen abwägen, zum Beispiel HMAC vs. asymmetrische Kryptografie oder MQTT vs. HTTP, und deren Auswirkungen verstehen.
+
+Ein wichtiger Schwerpunkt war „Security by Design“: Signaturprüfung, Replay-Schutz, konsistente Serialisierung und Fail-Fast-Validierung sind bewusst Teil der Architektur.
+
+Außerdem habe ich gelernt, KI nicht nur als Codegenerator zu nutzen, sondern als Werkzeug zur Analyse von Architekturentscheidungen und zur strukturierten Problemlösung.
+
+Das Projekt diente vor allem dazu, praktische Erfahrung mit sicherer Datenübertragung, modularer Architektur und dem Einsatz von KI als Entwicklungspartner zu sammeln.
+
+---
+
 ## Autor
 
 **Oleg Skydan**

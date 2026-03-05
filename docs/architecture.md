@@ -24,15 +24,15 @@ Zentrale Designprinzipien:
 │      Satellite (Raspberry Pi)       │
 ├─────────────────────────────────────┤
 │  BME280 Sensor / Simulation         │
-│           ↓                          │
+│           ↓                         │
 │  Telemetry Logger                   │
 │  • Format: TelemetryUnsigned        │
 │  • CSV: ts,temp,hum,press,mode      │
-│           ↓                          │
+│           ↓                         │
 │  HMAC-SHA256 Signing                │
 │  • Secret: Shared Key (hex)         │
 │  • Output: 64 hex chars             │
-│           ↓                          │
+│           ↓                         │
 │  MQTT Publisher                     │
 │  • Envelope V1 (JSON)               │
 │  • Payload: Base64(Signed CSV)      │
@@ -46,27 +46,27 @@ Zentrale Designprinzipien:
 │       Ground Station (macOS)        │
 ├─────────────────────────────────────┤
 │  MQTT Subscriber                    │
-│           ↓                          │
+│           ↓                         │
 │  Envelope Validation                │
 │  • JSON Schema (V1)                 │
 │  • Required fields check            │
-│           ↓                          │
+│           ↓                         │
 │  Deduplication                      │
 │  • msg_id cache (LRU)               │
 │  • Duplicate → Drop + Log           │
-│           ↓                          │
+│           ↓                         │
 │  Freshness Check                    │
 │  • ts_utc ± MAX_SKEW                │
 │  • Too old/future → Drop            │
-│           ↓                          │
+│           ↓                         │
 │  HMAC Verification                  │
 │  • Decode Base64 payload            │
 │  • Verify signature                 │
-│           ↓                          │
+│           ↓                         │
 │  Adaptive Security Check            │
 │  • Lockout detection                │
 │  • Quarantine if locked             │
-│           ↓                          │
+│           ↓                         │
 │  Routing Pipeline                   │
 │  ├─ data/processed/   (valid)       │
 │  ├─ data/rejected/    (bad sig)     │
@@ -111,7 +111,7 @@ satellite/src/satellite/
 ├── sensors/
 │   └── bme280.py            # BME280 Reader + Simulation
 ├── logger.py                # CSV Logger mit HMAC-Signing
-└── mqtt_publisher.py        # MQTT Publishing
+└── mqtt_publisher_from_file.py        # MQTT Publishing
 ```
 
 **Verantwortlichkeiten:**
