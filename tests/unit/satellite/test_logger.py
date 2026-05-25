@@ -1,5 +1,5 @@
 import io
-import json
+import yaml
 import builtins
 from pathlib import Path
 
@@ -10,6 +10,7 @@ from shared.protocol.signed_csv import verify_signed_line
 
 # Важно: импортируем именно модуль, чтобы monkeypatch работал по атрибутам модуля
 from satellite import logger as sat_logger
+from shared.protocol.telemetry_csv import TelemetryUnsigned
 
 
 SECRET = "aabbccddeeff00112233445566778899"
@@ -20,14 +21,20 @@ class SensorStub:
         self._it = iter(readings)
 
     def read(self):
-        return next(self._it)
+        d = next(self._it)
+        return TelemetryUnsigned(
+            ts=d["ts"],
+            temperature_c=d["temperature_c"],
+            humidity_pct=d["humidity_pct"],
+            pressure_hpa=d["pressure_hpa"],
+            mode=d["mode"],
+        )
 
 
-def make_cfg(csv_path: Path, interval_sec=1, secret_hex=SECRET):
+def make_cfg(csv_path: Path, interval_sec=1):
     return {
         "csv_path": str(csv_path),          # делаем absolute, чтобы не зависеть от HERE.parents
         "interval_sec": interval_sec,
-        "hmac_secret_hex": secret_hex,
     }
 
 
@@ -37,13 +44,12 @@ def patch_config_open(monkeypatch, cfg_dict):
     возвращал наш cfg.
     """
     real_open = builtins.open
-    cfg_json = json.dumps(cfg_dict)
 
     def fake_open(path, mode="r", *args, **kwargs):
-        # в logger: open(HERE.parents[2] / "configs" / "satellite.json", "r")
-        if str(path).endswith("configs/satellite.json") and "r" in mode:
-            return io.StringIO(cfg_json)
+        if str(path).endswith("configs/satellite.yaml") and "r" in mode:
+            return io.StringIO(yaml.safe_dump(cfg_dict))
         return real_open(path, mode, *args, **kwargs)
+
 
     monkeypatch.setattr(builtins, "open", fake_open)
 
@@ -72,8 +78,11 @@ def test_logger_writes_one_valid_signed_line(monkeypatch, tmp_path):
     # останавливаем цикл после первой итерации
     monkeypatch.setattr(sat_logger.time, "sleep", lambda _sec: (_ for _ in ()).throw(KeyboardInterrupt))
 
+    monkeypatch.setenv("SAT_SECRET_HEX", SECRET)
+
     with pytest.raises(KeyboardInterrupt):
         sat_logger.main()
+
 
     lines = read_csv_lines(csv_path)
     assert len(lines) == 2  # header + 1 строка
@@ -128,8 +137,11 @@ def test_logger_appends_and_header_not_duplicated(monkeypatch, tmp_path):
 
     monkeypatch.setattr(sat_logger.time, "sleep", fake_sleep)
 
+    monkeypatch.setenv("SAT_SECRET_HEX", SECRET)
+
     with pytest.raises(KeyboardInterrupt):
         sat_logger.main()
+
 
     lines = read_csv_lines(csv_path)
     assert lines[0] == "ts,temperature_c,humidity_pct,pressure_hpa,mode,sig"

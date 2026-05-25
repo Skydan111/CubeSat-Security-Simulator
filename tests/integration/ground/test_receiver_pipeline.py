@@ -7,6 +7,9 @@ from shared.crypto.hmac_sha256 import sign as hmac_sign
 
 CSV_HEADER_STR = "ts,temperature_c,humidity_pct,pressure_hpa,mode,sig"
 SECRET = "aabbccddeeff00112233445566778899"
+from ground import input_modes
+from ground import packet_pipeline
+
 
 
 class SecmanSimple:
@@ -37,11 +40,12 @@ def patch_paths(monkeypatch, tmp_path: Path):
     proc = tmp_path / "data" / "processed" / "telemetry.csv"
     rej = tmp_path / "data" / "rejected" / "telemetry.csv"
 
-    monkeypatch.setattr(receiver, "RAW_PATH", raw)
-    monkeypatch.setattr(receiver, "PROC_PATH", proc)
-    monkeypatch.setattr(receiver, "REJ_PATH", rej)
-    monkeypatch.setattr(receiver, "CSV_HEADER", CSV_HEADER_STR)
+    monkeypatch.setattr(input_modes, "RAW_PATH", raw)
+    monkeypatch.setattr(packet_pipeline, "PROC_PATH", proc)
+    monkeypatch.setattr(packet_pipeline, "REJ_PATH", rej)
+
     return raw, proc, rej
+
 
 
 def data_lines(path: Path):
@@ -66,14 +70,14 @@ def test_pipeline_ok_goes_to_processed(monkeypatch, tmp_path):
         payload = payload_bytes.decode("utf-8")
         return hmac_sign(payload, SECRET) == mac_hex
 
-    monkeypatch.setattr(receiver, "verify_with_config", verify_with_config)
+    monkeypatch.setattr(packet_pipeline, "verify_with_config", verify_with_config)
 
     payload = "2025-11-24T17:52:54Z,22.50,45.20,1013.20,NOMINAL"
     line = make_signed_line(payload)
 
     sec = SecmanSimple(locked=False)
-    receiver.ingest_raw_line(line)
-    receiver.handle_line(line, secman=sec, source="it")
+    input_modes.ingest_raw_line(line)
+    packet_pipeline.handle_line(line, secman=sec, source="it")
 
     assert data_lines(raw) == [line]
     assert data_lines(proc) == [line]
@@ -88,14 +92,14 @@ def test_pipeline_bad_sig_goes_to_rejected(monkeypatch, tmp_path):
         payload = payload_bytes.decode("utf-8")
         return hmac_sign(payload, SECRET) == mac_hex
 
-    monkeypatch.setattr(receiver, "verify_with_config", verify_with_config)
+    monkeypatch.setattr(packet_pipeline, "verify_with_config", verify_with_config)
 
     payload = "2025-11-24T17:52:54Z,22.50,45.20,1013.20,NOMINAL"
     line = f"{payload},WRONGSIG"
 
     sec = SecmanSimple(locked=False)
-    receiver.ingest_raw_line(line)
-    receiver.handle_line(line, secman=sec, source="it")
+    input_modes.ingest_raw_line(line)
+    packet_pipeline.handle_line(line, secman=sec, source="it")
 
     assert data_lines(raw) == [line]
     assert data_lines(proc) == []
@@ -109,7 +113,7 @@ def test_pipeline_lockout_quarantines_before_verify(monkeypatch, tmp_path):
     raw, proc, rej = patch_paths(monkeypatch, tmp_path)
 
     # если lockout — verify не должен иметь значения
-    monkeypatch.setattr(receiver, "verify_with_config", lambda *_: True)
+    monkeypatch.setattr(packet_pipeline, "verify_with_config", lambda *_: True)
 
     payload = "2025-11-24T17:52:54Z,22.50,45.20,1013.20,NOMINAL"
     line = make_signed_line(payload)
@@ -117,8 +121,8 @@ def test_pipeline_lockout_quarantines_before_verify(monkeypatch, tmp_path):
     sec = SecmanSimple(locked=True, action="quarantine")
     qpath = tmp_path / "data" / "quarantine" / "telemetry.csv"
 
-    receiver.ingest_raw_line(line)
-    receiver.handle_line(line, secman=sec, source="it", quarantine_path=qpath)
+    input_modes.ingest_raw_line(line)
+    packet_pipeline.handle_line(line, secman=sec, source="it", quarantine_path=qpath)
 
     assert data_lines(raw) == [line]
     assert data_lines(proc) == []
