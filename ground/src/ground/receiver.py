@@ -17,7 +17,7 @@ import sys
 import argparse
 from pathlib import Path
 import datetime
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any
 import csv
 from ground.mqtt_guard import MqttMessageGuard
 
@@ -110,6 +110,31 @@ def is_header(line: str) -> bool:
     """Erkennt CSV-Header anhand des Beginns mit 'ts,'."""
     return line.lower().startswith("ts,")
 
+def check_lockout(
+        pkt_id: str,
+        line: str,
+        meta: Dict[str, Any],
+        secman: Optional[object] = None,
+        quarantine_path: Optional[Path] = None) -> bool:
+    if secman and hasattr(secman, "on_packet_before_verify"):
+        if not secman.on_packet_before_verify(meta):
+            action = getattr(secman, "action_when_locked", lambda: "reject")()
+            reason = "lockout_active"
+            if action == "drop":
+                print(f"[LOCKED] dropped id={pkt_id}")
+                return False
+            elif action == "quarantine":
+                qpath = quarantine_path or Path("data/quarantine/telemetry.csv")
+                append_line(qpath, line.rstrip() + f",reason={reason}")
+                print(f"[LOCKED] quarantined id={pkt_id}")
+                return False
+            else:
+                append_line(REJ_PATH, line.rstrip() + f",reason={reason}")
+                print(f"[LOCKED] rejected id={pkt_id}")
+                return False
+    return True
+
+
 # ==== Datenverarbeitung + Adaptive Security ==== #
 
 def handle_line(
@@ -132,22 +157,9 @@ def handle_line(
     meta = {"source": source, "packet_id": pkt_id, "len": len(line)}
 
     # 0) Lockout vor Verify prüfen
-    if secman and hasattr(secman, "on_packet_before_verify"):
-        if not secman.on_packet_before_verify(meta):
-            action = getattr(secman, "action_when_locked", lambda: "reject")()
-            reason = "lockout_active"
-            if action == "drop":
-                print(f"[LOCKED] dropped id={pkt_id}")
-                return
-            elif action == "quarantine":
-                qpath = quarantine_path or Path("data/quarantine/telemetry.csv")
-                append_line(qpath, line.rstrip() + f",reason={reason}")
-                print(f"[LOCKED] quarantined id={pkt_id}")
-                return
-            else:
-                append_line(REJ_PATH, line.rstrip() + f",reason={reason}")
-                print(f"[LOCKED] rejected id={pkt_id}")
-                return
+    if not check_lockout(pkt_id, line, meta, secman, quarantine_path):
+        return
+
 
     # 1) Verify HMAC (mit differenzierten Fehlercodes)
     verify_reason = "ok"
@@ -192,22 +204,8 @@ def handle_verified_line(
     meta = {"source": source, "packet_id": pkt_id, "len": len(line), "transport": "mqtt"}
 
     # 0) Lockout vor Verarbeitung prüfen (wie in handle_line)
-    if secman and hasattr(secman, "on_packet_before_verify"):
-        if not secman.on_packet_before_verify(meta):
-            action = getattr(secman, "action_when_locked", lambda: "reject")()
-            reason = "lockout_active"
-            if action == "drop":
-                print(f"[LOCKED] dropped id={pkt_id}")
-                return
-            elif action == "quarantine":
-                qpath = quarantine_path or Path("data/quarantine/telemetry.csv")
-                append_line(qpath, line.rstrip() + f",reason={reason}")
-                print(f"[LOCKED] quarantined id={pkt_id}")
-                return
-            else:
-                append_line(REJ_PATH, line.rstrip() + f",reason={reason}")
-                print(f"[LOCKED] rejected id={pkt_id}")
-                return
+    if not check_lockout(pkt_id, line, meta, secman, quarantine_path):
+        return
 
     # 1) SecurityManager informieren: ok=true (weil Signatur schon geprüft wurde)
     if secman and hasattr(secman, "on_verification_result"):
