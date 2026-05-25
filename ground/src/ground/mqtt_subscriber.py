@@ -86,8 +86,9 @@ def main() -> int:
     broker_host = _env("MQTT_BROKER_HOST", "localhost")
     broker_port = int(_env("MQTT_BROKER_PORT", "1883"))
     sat_id = _env("SAT_ID", "SAT-001")
-    secret_hex = _env("SAT_SECRET_HEX", "deadbeef")
-
+    secret_hex = os.getenv("SAT_SECRET_HEX")
+    if secret_hex is None:
+            raise RuntimeError("SAT_SECRET_HEX nicht gesetzt. Bitte Umgebungsvariable setzen.")
     policy_path = _env("SECURITY_POLICY_PATH", "configs/security_policy.yaml")
     secman = SecurityManager(policy_path=policy_path)
 
