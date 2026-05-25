@@ -59,7 +59,7 @@ def load_df(csv_path: pathlib.Path) -> pd.DataFrame:
         raise SystemExit(f"[ERR] Telemetrie-Datei nicht gefunden: {csv_path}")
 
     try:
-        df = pd.read_csv(csv_path, parse_dates=["ts"])
+        df = pd.read_csv(csv_path, parse_dates=["ts"], utc=True)
     except ValueError as e:
         # Falls 'ts' anders heißt (Extremfall) — explizite Meldung
         raise SystemExit(f"[ERR] Konnte 'ts' nicht parsen: {e}")
@@ -92,16 +92,7 @@ def _format_time_axis(ax):
     ax.xaxis.set_major_locator(locator)
     ax.xaxis.set_major_formatter(formatter)
 
-
-def draw_once(
-    df: pd.DataFrame,
-    title: str = "CubeSat Telemetrie – Bodenstationsansicht",
-    save_path: pathlib.Path | None = None
-):
-    """Zeichnet eine statische Telemetrie-Grafik (einmalige Ansicht)."""
-    fig, axes = plt.subplots(3, 1, sharex=True, figsize=(9, 7))
-    fig.suptitle(title, fontsize=14)
-
+def _draw_axes(df: pd.DataFrame, axes) -> None:
     # Temperatur
     axes[0].plot(df["ts"], df["temperature_norm"], label="Temperatur (°C)")
     axes[0].set_ylabel("°C")
@@ -122,8 +113,21 @@ def draw_once(
 
     axes[2].set_xlabel("Zeit (UTC)")
     _format_time_axis(axes[2])
-    fig.autofmt_xdate()
     plt.tight_layout()
+
+
+
+def draw_once(
+    df: pd.DataFrame,
+    title: str = "CubeSat Telemetrie – Bodenstationsansicht",
+    save_path: pathlib.Path | None = None
+):
+    """Zeichnet eine statische Telemetrie-Grafik (einmalige Ansicht)."""
+    fig, axes = plt.subplots(3, 1, sharex=True, figsize=(9, 7))
+    fig.suptitle(title, fontsize=14)
+
+    _draw_axes(df, axes)
+    fig.autofmt_xdate()
 
     if save_path:
         plt.savefig(save_path, dpi=150)
@@ -179,25 +183,8 @@ def live_loop(
             for ax in axes:
                 ax.cla()
 
-            axes[0].plot(df["ts"], df["temperature_norm"], label="Temperatur (°C)")
-            axes[0].set_ylabel("°C")
-            axes[0].legend(loc="upper left")
-            axes[0].grid(True, linestyle="--", alpha=0.4)
-
-            axes[1].plot(df["ts"], df["humidity_norm"], label="Luftfeuchtigkeit (%)")
-            axes[1].set_ylabel("%")
-            axes[1].legend(loc="upper left")
-            axes[1].grid(True, linestyle="--", alpha=0.4)
-
-            axes[2].plot(df["ts"], df["pressure_norm"], label="Luftdruck (hPa)")
-            axes[2].set_ylabel("hPa")
-            axes[2].legend(loc="upper left")
-            axes[2].grid(True, linestyle="--", alpha=0.4)
-
-            axes[2].set_xlabel("Zeit (UTC)")
-            _format_time_axis(axes[2])
+            _draw_axes(df, axes)
             fig.autofmt_xdate()
-            plt.tight_layout()
 
             if save_path:
                 plt.savefig(save_path, dpi=150)
