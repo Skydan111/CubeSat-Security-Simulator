@@ -284,25 +284,26 @@ def main() -> int:
 
     # SecurityManager-Init, wirft RuntimeError bei fehlender Policy/Modul
     try:
-        secman = SecurityManager(args.security_policy, security_log_path=args.security_log, audit_log_path=args.security_audit)
+        with SecurityManager(args.security_policy, security_log_path=args.security_log, audit_log_path=args.security_audit) as secman:
+            if args.simulate:
+                receive_simulated(
+                    n=args.simulate_count,
+                    secman=secman,
+                    quarantine_path=args.quarantine_csv
+                )
+            elif args.file:
+                receive_from_file(args.file, secman=secman, quarantine_path=args.quarantine_csv)
+            elif args.stdin:
+                receive_from_stdin(secman=secman, quarantine_path=args.quarantine_csv)
+            else:
+                print("[GROUND] Receiver bereit. --simulate | --file <pfad> | --stdin")
+        return 0
     except Exception as e:
         print(f"[SECURITY] Adaptive Security deaktiviert ({e})")
         raise RuntimeError("SecurityManager konnte nicht initialisiert werden: " + str(e))
 
 
-    if args.simulate:
-        receive_simulated(
-            n=args.simulate_count,
-            secman=secman,
-            quarantine_path=args.quarantine_csv
-        )
-    elif args.file:
-        receive_from_file(args.file, secman=secman, quarantine_path=args.quarantine_csv)
-    elif args.stdin:
-        receive_from_stdin(secman=secman, quarantine_path=args.quarantine_csv)
-    else:
-        print("[GROUND] Receiver bereit. --simulate | --file <pfad> | --stdin")
-    return 0
+
 
 if __name__ == "__main__":
     try:
