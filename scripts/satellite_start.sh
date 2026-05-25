@@ -37,7 +37,7 @@ if [[ -f "$PID_DIR/publisher.pid" ]] && kill -0 "$(cat "$PID_DIR/publisher.pid")
   echo "[satellite_start] Publisher already running (pid=$(cat "$PID_DIR/publisher.pid"))."
 else
   echo "[satellite_start] Starting publisher_from_file..."
-  nohup python satellite/src/satellite/mqtt_publisher_from_file.py > logs/publisher.log 2>&1 &
+  nohup python -m satellite.mqtt_publisher_from_file > logs/publisher.log 2>&1 &
   echo $! > "$PID_DIR/publisher.pid"
   echo "[satellite_start] Publisher pid=$(cat "$PID_DIR/publisher.pid"), log=logs/publisher.log"
 fi
