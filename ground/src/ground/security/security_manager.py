@@ -109,8 +109,10 @@ class SecurityManager:
         # Audit-Datei (JSONL) für maschinenlesbare Auswertung
         self._audit_fp = open(self.audit_log_path, "a", encoding="utf-8")
 
-    def __del__(self):
-        """Sicheres Schließen der Audit-Datei."""
+    def __enter__(self):
+            return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
         try:
             self._audit_fp.close()
         except Exception:

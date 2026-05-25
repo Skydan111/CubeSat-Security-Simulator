@@ -10,7 +10,8 @@ from shared.comm.envelope import EnvelopeV1, bytes_from_b64
 from shared.comm.topics import telemetry_topic
 from shared.protocol.signed_csv import verify_signed_line
 from ground.mqtt_guard import GuardConfig, MqttMessageGuard
-from ground.receiver import ingest_raw_line, handle_verified_line
+from ground.input_modes import ingest_raw_line
+from ground.packet_pipeline import handle_verified_line
 from ground.security.security_manager import SecurityManager
 from pathlib import Path
 
@@ -86,8 +87,9 @@ def main() -> int:
     broker_host = _env("MQTT_BROKER_HOST", "localhost")
     broker_port = int(_env("MQTT_BROKER_PORT", "1883"))
     sat_id = _env("SAT_ID", "SAT-001")
-    secret_hex = _env("SAT_SECRET_HEX", "deadbeef")
-
+    secret_hex = os.getenv("SAT_SECRET_HEX")
+    if secret_hex is None:
+            raise RuntimeError("SAT_SECRET_HEX nicht gesetzt. Bitte Umgebungsvariable setzen.")
     policy_path = _env("SECURITY_POLICY_PATH", "configs/security_policy.yaml")
     secman = SecurityManager(policy_path=policy_path)
 

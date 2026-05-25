@@ -2,7 +2,8 @@ import pytest
 from pathlib import Path
 
 from ground import receiver
-
+from ground import input_modes
+from ground import packet_pipeline
 
 CSV_HEADER_STR = "ts,temperature_c,humidity_pct,pressure_hpa,mode,sig"
 
@@ -30,10 +31,9 @@ def patch_paths(monkeypatch, tmp_path: Path):
     proc = tmp_path / "data" / "processed" / "telemetry.csv"
     rej = tmp_path / "data" / "rejected" / "telemetry.csv"
 
-    monkeypatch.setattr(receiver, "RAW_PATH", raw)
-    monkeypatch.setattr(receiver, "PROC_PATH", proc)
-    monkeypatch.setattr(receiver, "REJ_PATH", rej)
-    monkeypatch.setattr(receiver, "CSV_HEADER", CSV_HEADER_STR)
+    monkeypatch.setattr(input_modes, "RAW_PATH", raw)
+    monkeypatch.setattr(packet_pipeline, "PROC_PATH", proc)
+    monkeypatch.setattr(packet_pipeline, "REJ_PATH", rej)
 
     return raw, proc, rej
 
@@ -59,20 +59,20 @@ def data_lines(path: Path):
 # -------------------------
 
 def test_split_payload_mac_ok():
-    payload, mac = receiver.split_payload_mac("a,b,c,SIG\n")
+    payload, mac = packet_pipeline.split_payload_mac("a,b,c,SIG\n")
     assert payload == b"a,b,c"
     assert mac == "SIG"
 
 
 def test_split_payload_mac_no_delimiter():
     with pytest.raises(ValueError) as e:
-        receiver.split_payload_mac("abcdef")
+        packet_pipeline.split_payload_mac("abcdef")
     assert str(e.value) == "no_mac_delimiter"
 
 
 def test_split_payload_mac_empty_mac():
     with pytest.raises(ValueError) as e:
-        receiver.split_payload_mac("a,b,c,   ")
+        packet_pipeline.split_payload_mac("a,b,c,   ")
     assert str(e.value) == "empty_mac"
 
 
@@ -83,11 +83,11 @@ def test_split_payload_mac_empty_mac():
 def test_handle_line_writes_processed_on_ok(monkeypatch, tmp_path):
     raw, proc, rej = patch_paths(monkeypatch, tmp_path)
 
-    monkeypatch.setattr(receiver, "verify_with_config", lambda payload, mac: True)
+    monkeypatch.setattr(packet_pipeline, "verify_with_config", lambda payload, mac: True)
 
     sec = SecmanStub(locked=False)
     line = "2025-11-24T17:52:54Z,22.50,45.20,1013.20,NOMINAL,DEADBEEF"
-    receiver.handle_line(line, secman=sec, source="unit")
+    packet_pipeline.handle_line(line, secman=sec, source="unit")
 
     assert data_lines(proc) == [line]
     assert data_lines(rej) == []
@@ -103,11 +103,11 @@ def test_handle_line_writes_processed_on_ok(monkeypatch, tmp_path):
 def test_handle_line_writes_rejected_on_invalid_signature(monkeypatch, tmp_path):
     raw, proc, rej = patch_paths(monkeypatch, tmp_path)
 
-    monkeypatch.setattr(receiver, "verify_with_config", lambda payload, mac: False)
+    monkeypatch.setattr(packet_pipeline, "verify_with_config", lambda payload, mac: False)
 
     sec = SecmanStub(locked=False)
     line = "2025-11-24T17:52:54Z,22.50,45.20,1013.20,NOMINAL,BADSIG"
-    receiver.handle_line(line, secman=sec, source="unit")
+    packet_pipeline.handle_line(line, secman=sec, source="unit")
 
     assert data_lines(proc) == []
     out = data_lines(rej)
@@ -119,12 +119,12 @@ def test_handle_line_marks_malformed_packet(monkeypatch, tmp_path):
     raw, proc, rej = patch_paths(monkeypatch, tmp_path)
 
     # verify_with_config не должен вызываться, но пусть будет
-    monkeypatch.setattr(receiver, "verify_with_config", lambda payload, mac: True)
+    monkeypatch.setattr(packet_pipeline, "verify_with_config", lambda payload, mac: True)
 
     sec = SecmanStub(locked=False)
     # нет последней запятой => split_payload_mac кинет no_mac_delimiter
     line = "THIS_IS_NOT_CSV_AT_ALL"
-    receiver.handle_line(line, secman=sec, source="unit")
+    packet_pipeline.handle_line(line, secman=sec, source="unit")
 
     assert data_lines(proc) == []
     out = data_lines(rej)
@@ -136,13 +136,13 @@ def test_handle_line_marks_malformed_packet(monkeypatch, tmp_path):
 
 def test_handle_line_lockout_quarantine(monkeypatch, tmp_path):
     raw, proc, rej = patch_paths(monkeypatch, tmp_path)
-    monkeypatch.setattr(receiver, "verify_with_config", lambda payload, mac: True)
+    monkeypatch.setattr(packet_pipeline, "verify_with_config", lambda payload, mac: True)
 
     sec = SecmanStub(locked=True, action="quarantine")
     qpath = tmp_path / "data" / "quarantine" / "telemetry.csv"
 
     line = "2025-11-24T17:52:54Z,22.50,45.20,1013.20,NOMINAL,SIG"
-    receiver.handle_line(line, secman=sec, source="unit", quarantine_path=qpath)
+    packet_pipeline.handle_line(line, secman=sec, source="unit", quarantine_path=qpath)
 
     # Не должно уйти ни в processed, ни в rejected
     assert data_lines(proc) == []
@@ -159,14 +159,14 @@ def test_handle_line_lockout_quarantine(monkeypatch, tmp_path):
 
 def test_receive_from_file_does_not_duplicate_when_reading_raw(monkeypatch, tmp_path):
     raw, proc, rej = patch_paths(monkeypatch, tmp_path)
-    monkeypatch.setattr(receiver, "verify_with_config", lambda payload, mac: True)
+    monkeypatch.setattr(packet_pipeline, "verify_with_config", lambda payload, mac: True)
 
     # создаём RAW файл (header + 1 строка)
     line = "2025-11-24T17:52:54Z,22.50,45.20,1013.20,NOMINAL,SIG"
     raw.parent.mkdir(parents=True, exist_ok=True)
     raw.write_text(CSV_HEADER_STR + "\n" + line + "\n", encoding="utf-8")
 
-    receiver.receive_from_file(raw, secman=None)
+    input_modes.receive_from_file(raw, secman=None)
 
     # RAW не должен быть “перезаписан/дописан” заново тем же line
     assert data_lines(raw) == [line]
@@ -176,14 +176,14 @@ def test_receive_from_file_does_not_duplicate_when_reading_raw(monkeypatch, tmp_
 
 def test_receive_from_file_ingests_raw_when_source_is_not_raw(monkeypatch, tmp_path):
     raw, proc, rej = patch_paths(monkeypatch, tmp_path)
-    monkeypatch.setattr(receiver, "verify_with_config", lambda payload, mac: True)
+    monkeypatch.setattr(packet_pipeline, "verify_with_config", lambda payload, mac: True)
 
     src = tmp_path / "input.csv"
     line1 = "2025-11-24T17:52:54Z,22.50,45.20,1013.20,NOMINAL,SIG1"
     line2 = "2025-11-24T17:53:54Z,22.60,45.10,1013.10,NOMINAL,SIG2"
     src.write_text(CSV_HEADER_STR + "\n" + line1 + "\n" + line2 + "\n", encoding="utf-8")
 
-    receiver.receive_from_file(src, secman=None)
+    input_modes.receive_from_file(src, secman=None)
 
     # RAW должен получить обе строки ровно по одному разу
     assert data_lines(raw) == [line1, line2]

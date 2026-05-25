@@ -8,8 +8,9 @@ Funktionen:
  - Wird vom Receiver-Modul verwendet
 """
 
-import hmac, hashlib, binascii, json, os, pathlib
+import json, os, pathlib
 from shared.protocol.signed_csv import verify_signed_line
+from shared.crypto.hmac_sha256 import verify as hmac_verify
 
 # --- Neue Sektion: Laden der Konfiguration ---
 from ground.config.paths import ROOT_DIR
@@ -29,7 +30,7 @@ def _load_secret_hex() -> str:
     return cfg["hmac_secret"].strip()
 
 
-# --- Deine ursprüngliche Funktion bleibt unverändert ---
+# --- Delegiert an shared.crypto.hmac_sha256 ---
 def verify(secret_hex: str, payload_bytes: bytes, mac_hex: str) -> bool:
     """
     Überprüft eine HMAC-SHA256-Signatur.
@@ -42,9 +43,8 @@ def verify(secret_hex: str, payload_bytes: bytes, mac_hex: str) -> bool:
     Rückgabe:
         bool – True, wenn die Signatur gültig ist, sonst False.
     """
-    key = binascii.unhexlify(secret_hex)
-    expected = hmac.new(key, payload_bytes, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, mac_hex)
+    expected = payload_bytes.decode("UTF-8")
+    return hmac_verify(expected, secret_hex, mac_hex)
 
 
 # --- Zusatzfunktion: Automatische Variante ---

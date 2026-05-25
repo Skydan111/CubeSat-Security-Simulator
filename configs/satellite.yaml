@@ -1,0 +1,16 @@
+# ===============================================================
+# Satellite-Konfiguration (OBC / Logger)
+# ===============================================================
+
+# Betriebsmodus: "simulate" = Sensordaten werden simuliert
+#                "hardware" = echte BME280-Sensordaten
+mode: simulate
+
+# Pfad zur CSV-Datei für Telemetrie-Logs (relativ zum Projektroot)
+csv_path: logs/telemetry.csv
+
+# Intervall zwischen zwei Messungen in Sekunden
+interval_sec: 60
+
+# Hinweis: hmac_secret_hex wird nicht hier gespeichert.
+# Bitte Umgebungsvariable SAT_SECRET_HEX setzen.
