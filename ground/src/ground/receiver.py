@@ -19,6 +19,7 @@ from pathlib import Path
 import datetime
 from typing import Optional, Tuple
 import csv
+from ground.mqtt_guard import MqttMessageGuard
 
 # ==== Adapter-Funktionen mit Fehlerdiagnose ==== #
 
@@ -231,7 +232,9 @@ def receive_simulated(n: int = 3, secman: Optional[object] = None, quarantine_pa
         ingest_raw_line(line)  # RAW nur hier (kein Doppel im handle_line)
         handle_line(line, secman=secman, source="simulate", quarantine_path=quarantine_path)
 
-def receive_from_file(path: Path, secman: Optional[object] = None, quarantine_path: Optional[Path] = None) -> None:
+def receive_from_file(
+        path: Path, guard: Optional[MqttMessageGuard] = None, secman: Optional[object] = None, quarantine_path: Optional[Path] = None) -> None:
+    # TODO: apply guard.is_duplicate() and guard.is_fresh() per line (pkt 6)
     """Liest eine CSV-Datei und verarbeitet sie Zeile für Zeile."""
     if not path.exists():
         raise SystemExit(f"[ERR] Datei nicht gefunden: {path}")
