@@ -2,16 +2,14 @@
 """
 Satellite Logger – Erfasst Sensordaten (BME280) und schreibt signierte Telemetrie in CSV.
 
-Liest Konfiguration aus configs/satellite.json und signiert jeden Datensatz mit HMAC-SHA256.
+Liest Konfiguration aus configs/satellite.yaml und signiert jeden Datensatz mit HMAC-SHA256.
 """
-import csv, json, os, hmac, hashlib, time, pathlib, binascii
+import csv, time, pathlib, yaml
+import os
 from .sensors.bme280 import BME280Reader
 from shared.protocol.signed_csv import format_signed_line
 
 HERE = pathlib.Path(__file__).resolve().parent
-# CFG = json.load(open(HERE / "config" / "mission.json", "r"))
-# CSV_PATH = pathlib.Path(CFG["csv_path"])
-# CSV_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 def write_header_if_needed(path):
     if not path.exists() or path.stat().st_size == 0:
@@ -20,7 +18,7 @@ def write_header_if_needed(path):
             w.writerow(["ts","temperature_c","humidity_pct","pressure_hpa","mode","sig"])
 
 def main():
-    CFG = json.load(open(HERE.parents[2] / "configs" / "satellite.json", "r"))
+    CFG = yaml.safe_load(open(HERE.parents[2] / "configs" / "satellite.yaml", "r"))
 
     CSV_PATH = pathlib.Path(CFG["csv_path"])
     if not CSV_PATH.is_absolute():
@@ -29,7 +27,9 @@ def main():
     sensor = BME280Reader()
     write_header_if_needed(CSV_PATH)
     interval = int(CFG["interval_sec"])
-    secret_hex = CFG["hmac_secret_hex"]
+    secret_hex = os.getenv("SAT_SECRET_HEX")
+    if secret_hex is None:
+            raise RuntimeError("SAT_SECRET_HEX nicht gesetzt. Bitte Umgebungsvariable setzen.")
 
     print(f"[OBC] logging to {CSV_PATH} every {interval}s ... Ctrl+C to stop")
     while True:
