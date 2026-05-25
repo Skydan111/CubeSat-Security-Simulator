@@ -6,7 +6,6 @@ Liest Konfiguration aus configs/satellite.json und signiert jeden Datensatz mit 
 """
 import csv, json, os, hmac, hashlib, time, pathlib, binascii
 from .sensors.bme280 import BME280Reader
-from shared.protocol.telemetry_csv import TelemetryUnsigned
 from shared.protocol.signed_csv import format_signed_line
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -34,17 +33,9 @@ def main():
 
     print(f"[OBC] logging to {CSV_PATH} every {interval}s ... Ctrl+C to stop")
     while True:
-        d = sensor.read()
+        telemetry_unsigned = sensor.read()
 
-        u = TelemetryUnsigned(
-            ts=str(d["ts"]),
-            temperature_c=float(d["temperature_c"]),
-            humidity_pct=float(d["humidity_pct"]),
-            pressure_hpa=float(d["pressure_hpa"]),
-            mode=str(d["mode"]),
-        )
-
-        line = format_signed_line(u, secret_hex)   # ts,temp,hum,press,mode,sig
+        line = format_signed_line(telemetry_unsigned, secret_hex)   # ts,temp,hum,press,mode,sig
         row = line.split(",")
 
         with open(CSV_PATH, "a", newline="") as f:

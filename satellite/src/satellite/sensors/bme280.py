@@ -1,5 +1,6 @@
 import time, random
 from datetime import datetime, timezone
+from shared.protocol.telemetry_csv import TelemetryUnsigned
 
 try:
     import board, busio
@@ -19,22 +20,22 @@ class BME280Reader:
     def read(self):
         ts = datetime.now(timezone.utc).isoformat()
         if _HW:
-            return {
-                "ts": ts,
-                "temperature_c": round(float(self.bme.temperature), 2),
-                "humidity_pct": round(float(self.bme.humidity), 2),
-                "pressure_hpa": round(float(self.bme.pressure), 2),
-                "mode": "hardware"
-            }
+            return TelemetryUnsigned(
+                ts=ts,
+                temperature_c=round(float(self.bme.temperature), 2),
+                humidity_pct=round(float(self.bme.humidity), 2),
+                pressure_hpa=round(float(self.bme.pressure), 2),
+                mode="hardware"
+            )
 
         t = time.time() - self.sim_start
         temp = 22.0 + 1.5 * (random.random() - 0.5) + 0.5 * (1 if int(t/30)%2==0 else -1)
         hum  = 45.0 + 5.0 * (random.random() - 0.5)
         pres = 1013.0 + 2.0 * (random.random() - 0.5)
-        return {
-            "ts": ts,
-            "temperature_c": round(temp, 2),
-            "humidity_pct": round(hum, 2),
-            "pressure_hpa": round(pres, 2),
-            "mode": "sim"
-        }
+        return TelemetryUnsigned(
+            ts=ts,
+            temperature_c=round(temp, 2),
+            humidity_pct=round(hum, 2),
+            pressure_hpa=round(pres, 2),
+            mode="sim"
+        )
