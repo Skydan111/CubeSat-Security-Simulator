@@ -59,7 +59,8 @@ def load_df(csv_path: pathlib.Path) -> pd.DataFrame:
         raise SystemExit(f"[ERR] Telemetrie-Datei nicht gefunden: {csv_path}")
 
     try:
-        df = pd.read_csv(csv_path, parse_dates=["ts"], utc=True)
+        df = pd.read_csv(csv_path)
+        df["ts"] = pd.to_datetime(df["ts"], format="mixed", utc=True)
     except ValueError as e:
         # Falls 'ts' anders heißt (Extremfall) — explizite Meldung
         raise SystemExit(f"[ERR] Konnte 'ts' nicht parsen: {e}")

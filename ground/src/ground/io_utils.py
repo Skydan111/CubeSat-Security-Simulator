@@ -18,7 +18,7 @@ def append_line(path: Path, line: str, add_header: bool = True, csv_header: str 
     ohne den bestehenden CSV_HEADER zu verändern.
     """
     ensure_parent(path)
-    header_needed = add_header and (not path.exists() or path.stat().st_size == 0)
+    header_needed = add_header and bool(csv_header) and (not path.exists() or path.stat().st_size == 0)
     with path.open("a", encoding="utf-8", newline="") as f:
         if header_needed:
             f.write(csv_header + "\n")

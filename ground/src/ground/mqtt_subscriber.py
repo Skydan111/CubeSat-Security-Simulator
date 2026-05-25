@@ -10,7 +10,8 @@ from shared.comm.envelope import EnvelopeV1, bytes_from_b64
 from shared.comm.topics import telemetry_topic
 from shared.protocol.signed_csv import verify_signed_line
 from ground.mqtt_guard import GuardConfig, MqttMessageGuard
-from ground.receiver import ingest_raw_line, handle_verified_line
+from ground.input_modes import ingest_raw_line
+from ground.packet_pipeline import handle_verified_line
 from ground.security.security_manager import SecurityManager
 from pathlib import Path
 
