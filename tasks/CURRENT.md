@@ -1,294 +1,140 @@
-# CURRENT — Job Fair Polish Sprint (NO NEW FEATURES)
-
-## Goal (one sentence)
-Make the repository job-fair-ready: clean, reproducible, well-documented, and easy to explain in 2 minutes — without changing protocol/crypto/core behavior.
-
-## Project Snapshot
-Secure MQTT telemetry simulator:
-Satellite (Raspberry Pi + BME280)
- → HMAC-SHA256 signing
- → MQTT
- → Ground Station
- → dedup
- → freshness/anti-replay
- → signature verify
- → routing (processed/rejected/quarantine).
-
-Status:
-- Working end-to-end
-- 52 tests passing
-- Runs on Raspberry Pi
-- macOS dev environment uses Python 3.13 (Homebrew)
-
-## Hard STOP Rules (must obey)
-STOP and ask before proceeding if a change would:
-- change MQTT topics, payload/envelope schema, protocol format
-- change crypto primitives, signing/verifying semantics, key handling meaning
-- change routing semantics (processed/rejected/quarantine meaning)
-- add new runtime dependencies
-- restructure core flow in a way that changes behavior
-
-Allowed:
-- docs/README/demo instructions
-- repo hygiene (.gitignore, remove tracked artifacts)
-- moving sample files to examples/ or tests/fixtures (behavior unchanged)
-- renaming/moving docs files and updating links
-- comment language normalization (German) where safe
-- Do not introduce new tooling (black/ruff/pre-commit). Only use tools already configured in repo and keep diffs minimal.
-
-## Mandatory constraints (repo-specific)
-- Do not invent new run commands. Use existing scripts in `scripts/`:
-  - `./scripts/satellite_start.sh` / `_status.sh` / `_stop.sh`
-  - `./scripts/ground_start.sh` / `_status.sh` / `_stop.sh`
-- MQTT broker for local demo: `docker compose -f docker-compose.mqtt.yml up -d`
-- Tests must pass with: `pytest`
-- Target Python: 3.13 (document it). Do not ship venv in repo.
-
-## Acceptance Criteria
-- Professional `README.md` with Quickstart, diagram, security features, and clear value.
-- Clean repo: no tracked venv/logs/runtime data.
-- No secrets in repo. Configs safe for public sharing.
-- `pytest` passes.
-- Added German project description + 2-minute pitch (docs file).
-
----
-
-# Execution Plan
-
-## 0) Baseline checks (show results)
-Run and report outputs:
-- `git status --porcelain`
-- `pytest` (if too slow, at least run at the end; but prefer baseline + final)
-- List tracked suspicious artifacts:
-  - `git ls-files | grep -E '^(\\.venv/|venv/|\\.pytest_cache/|logs/|data/|.*\\.csv$|.*\\.log$|.*\\.jsonl$)' || true`
-
-Secrets scan (DO NOT print secrets, only filenames + line numbers):
-- `grep -RInE '(HMAC|SECRET|TOKEN|PASSWORD|API_KEY|PRIVATE_KEY|KEY=|mqtt.*pass|passwd)' configs ground satellite shared || true`
-
-If any real secret is found:
-- replace with placeholder
-- add documentation how to provide it via env / local config (no new dependencies)
-
-## 1) Repo hygiene (must do)
-### 1.1 Update root `.gitignore`
-Ensure it ignores:
-- `.venv/`, `venv/`
-- `.pytest_cache/`, `__pycache__/`, `*.pyc`
-- `.vscode/`, `.run/`, `.DS_Store`
-- runtime: `logs/`, `data/**` (keep `.gitkeep` only)
-- generated artifacts: `*.log`, `*.csv`, `*.jsonl`
-
-### 1.2 Remove tracked artifacts from git index (do not delete local files)
-If any are tracked, run:
-- `git rm -r --cached .pytest_cache .venv venv logs || true`
-- `git rm -r --cached data/tmp data/raw data/processed data/quarantine data/rejected data/archive || true`
-- `git rm --cached test_data_telemetry.csv || true`
-
-### 1.3 Ensure `data/` is clean and intentional
-Keep only folder structure with `.gitkeep`:
-- `data/raw/.gitkeep`
-- `data/processed/.gitkeep`
-- `data/quarantine/.gitkeep`
-- `data/rejected/.gitkeep`
-- `data/archive/.gitkeep`
-- `data/reports/.gitkeep` (optional)
-
-Do not keep real telemetry CSVs in `data/` (runtime only).
-
-## 2) Create `examples/` for demo (must do)
-Create `examples/` with small, safe demo files.
-Move/rename if present:
-- `data/tmp/good.csv` → `examples/telemetry_good.csv`
-- `data/tmp/bad_sig.csv` → `examples/telemetry_bad_sig.csv`
-- `data/tmp/corrupted.csv` → `examples/telemetry_corrupted.csv`
-- `test_data_telemetry.csv` → either `examples/` or `tests/fixtures/` (choose based on usage)
+# CURRENT.md — Active Task Queue
 
-Update any references in code/tests if necessary. Behavior must remain unchanged.
+Last updated: 2026-03-30
 
-## 3) Reproducible Dev Setup (must do before docs rewrite)
+-----
 
-### Goal
+## 🔴 HIGH PRIORITY — Security Fixes
 
-Ensure the project is fully reproducible from a clean environment.
-`pytest` must pass in a fresh virtual environment created strictly according to the README instructions.
+### TASK-01: Fail-secure for dummy SecurityManager [SELF]
 
-This is not a new feature.
-This is packaging and reproducibility hygiene required for job-fair readiness.
+**File:** `ground/src/ground/receiver.py`
+**Problem:** `try_import_secman()` returns a DummySecman that silently
+allows everything — system runs without a security layer without any warning.
+**Fix:** If SecurityManager fails to import — raise RuntimeError, no fallback.
+**Definition of done:** System refuses to start without a real SecurityManager.
+**Tests:** `pytest tests/unit/ground/`
 
----
+-----
 
-### Target Python
+### TASK-02: Remove hardcoded “deadbeef” default secret [SELF]
 
-- Officially support and document **Python 3.11**
-- Do not claim support for 3.13 unless all tests pass in a clean 3.13 environment
-- README must clearly state the supported version
+**Files:**
 
----
+- `ground/src/ground/mqtt_subscriber.py`
+- `satellite/src/satellite/mqtt_publisher.py`
+- `scripts/ground_start.sh`
+  **Problem:** Hardcoded default makes HMAC verification meaningless.
+  **Fix:** If `HMAC_SECRET_HEX` is not set — raise explicit error on startup.
+  **Definition of done:** System fails with a clear message if variable is missing.
+  **Tests:** `pytest tests/unit/`
 
-### Required Actions
+-----
 
-1. Verify that all runtime and test dependencies are properly declared.
-   - If missing dependencies are detected (e.g. `paho-mqtt`), add them to the appropriate requirements file.
-   - Do not introduce new libraries that are not already used by the project.
-   - This step is strictly declarative (fix missing declarations only).
+### TASK-03: Context manager for SecurityManager [SELF]
 
-2. Ensure local packages are installable in editable mode:
-   - `pip install -e shared`
-   - `pip install -e ground`
-   - `pip install -e satellite`
+**File:** `ground/src/ground/security/security_manager.py`
+**Problem:** `__del__` does not guarantee audit file is closed on crash.
+**Fix:** Implement `__enter__` and `__exit__` methods.
+**Definition of done:** SecurityManager is used via `with` statement.
+**Tests:** `pytest tests/unit/ground/security/`
 
-   The project must not rely on implicit `PYTHONPATH` behavior.
+-----
 
-3. Define a single canonical installation path for development:
+## 🟡 MEDIUM PRIORITY — Architecture
 
-   Example (to be documented in README):
+### TASK-04: bme280.py returns TelemetryUnsigned directly [SELF]
 
-   ```bash
-   python3.11 -m venv .venv
-   source .venv/bin/activate
+**File:** `satellite/src/satellite/sensors/bme280.py`
+**Problem:** `read()` returns a plain dict — manual conversion happens in `logger.py`.
+**Fix:** `read()` returns `TelemetryUnsigned` directly.
+**Definition of done:** Manual conversion in `logger.py` is removed, all tests green.
+**Tests:** `pytest tests/unit/satellite/`
 
-   pip install -r requirements.txt
-   pip install -r requirements-dev.txt
+-----
 
-   pip install -e shared
-   pip install -e ground
-   pip install -e satellite
+### TASK-05: Remove duplicate HMAC logic in verify.py [SELF]
 
-   pytest
-   ```
+**File:** `ground/src/ground/verify.py`
+**Problem:** HMAC logic is duplicated — `shared/crypto/hmac_sha256.py`
+must be the single source of truth.
+**Fix:** `verify.py` delegates to `shared`, no own implementation.
+**Definition of done:** Duplicate code removed, all tests green.
+**Important:** Check via tests what is actually being called before removing anything.
+**Tests:** `pytest tests/unit/`
 
-4.	Validate that:
-	- In a freshly created .venv
-	- With only the documented commands executed
-	- pytest completes successfully
-	- All tests pass
+-----
 
-### Hard Constraints
-	- Do not modify protocol, crypto, routing, or core logic.
-	- Do not refactor project structure.
-	- Do not introduce new architectural elements.
-	- Only fix dependency declarations and installation reproducibility.
+### TASK-06: Direct path in receiver.py bypasses security checks [TOGETHER]
 
-### Acceptance Criteria
-	- Fresh .venv → install via documented commands → pytest = green.
-	- No manual path hacks.
-	- No undeclared dependencies.
-	- README Quickstart reflects the validated installation flow.
+**File:** `ground/src/ground/receiver.py`
+**Problem:** `receive_from_file()` and `receive_from_stdin()` do not use
+`MqttMessageGuard` — no dedup or freshness checks.
+**Fix:** Make `MqttMessageGuard` available to the direct path as well.
+**Definition of done:** Both paths enforce the same security checks.
+**Tests:** `pytest tests/integration/ground/`
 
-## 4) Docs cleanup and re-linking (must do)
-Goal: high-signal docs for interviewers.
+-----
 
-Create/ensure these files exist:
-- `docs/architecture.md`
-- `docs/security.md`
-- `docs/demo.md`
-- `docs/pitch_de.md`
-
-If content exists under `docs/design/`:
-- move it to the above filenames (or copy + delete old)
-- update internal links accordingly
-
-Keep `docs/mission_reports/` as “engineering log” (secondary).
-
-## 5) README Rewrite Specification (German, professional tone)
-
-Rewrite README.md completely.
-
-Language: German.
-Tone: technisch, präzise, kein Marketing, keine Rollenspiel-Elemente.
-
-Structure must be:
-
-1. Titel + 1-Satz-Zusammenfassung
-   - End-to-end abgesicherte Telemetrie-Pipeline (Satellite → MQTT → Ground)
-   - Fokus: Integrität, Replay-Resistenz, klare Architektur
-
-2. Was dieses Projekt demonstriert (Bullet Points)
-   - End-to-end Systemdesign
-   - HMAC-SHA256 Integritätsschutz
-   - Deduplication
-   - Freshness / Anti-Replay
-   - Routing (processed / rejected / quarantine)
-   - Testabdeckung
-   - Betrieb auf Raspberry Pi
-
-3. Systemarchitektur (ASCII Diagramm)
-   - Satellite
-   - MQTT Transport
-   - Ground Station
-   - shared/ Layer (crypto + protocol)
-
-4. Sicherheitsmodell
-   Present as Threat → Control table:
-   - Payload Manipulation → HMAC
-   - Replay → Freshness + Sliding Window
-   - Duplicate Messages → Dedup
-   - Repeated Invalid Attempts → Lockout
-
-5. Design Decisions
-   - Warum HMAC (symmetrisch, performant, Integritätsfokus)
-   - Warum klare Modultrennung (satellite/ ground/ shared/)
-   - Warum Tests auf mehreren Ebenen
-
-6. Schnellstart (macOS, Python 3.13)
-   - python3.13 -m venv .venv
-   - docker compose -f docker-compose.mqtt.yml up -d
-   - use existing scripts from scripts/
-   - pytest
-   - Quickstart must use scripts/ground_*.sh and scripts/satellite_*.sh (no direct python module invocation).
-
-   Do not invent commands.
-
-7. Projektstruktur (real tree excerpt)
-
-8. Teststrategie
-   - Anzahl der Tests (use real number from pytest)
-   - Unit / Integration / Security Tests
-
-9. Grenzen & Annahmen
-   - Demo-Umgebung
-   - Shared Secret in Config
-   - Kein vollständiges Produktions-Secret-Management
-
-Remove:
-- Mission Timeline
-- Rollenspiel-Elemente
-- Outdated dates
-- Inconsistent claims
-
-## 6) German description + 2-min pitch (must do)
-Write `docs/pitch_de.md` containing:
-- Kurzbeschreibung (3–6 Sätze)
-- 2-Minuten Elevator Pitch (spoken style)
-
-## 7) Code comment normalization (German, explain WHY)
-Scope:
-- `ground/src/ground/**/*.py`
-- `satellite/src/satellite/**/*.py`
-- `shared/src/shared/**/*.py`
-
-Rules:
-- Comments in German, professional tone
-- Remove redundant comments that describe obvious code
-- Keep comments explaining reasoning, security assumptions, edge cases
-- Do not touch core logic or tests unless required for consistency
-- Only change comments/docstrings. No refactoring, no renaming, no reformatting code lines.
-
-## 8) Final verification and report (mandatory)
-- Run `pytest`
-- Show `git status --porcelain`
-- Provide a clear summary:
-  - files changed/added/removed
-  - what was cleaned and why
-  - confirm no protocol/crypto/core flow changes
-  - confirm tests passing
-
----
-
-# Deliverable Checklist (must be true at the end)
-- [ ] README.md is job-fair-ready
-- [ ] docs/architecture.md, docs/security.md, docs/demo.md exist and are linked
-- [ ] docs/pitch_de.md exists
-- [ ] .gitignore prevents venv/logs/runtime data from being tracked
-- [ ] no tracked venv/logs/runtime csv/jsonl
-- [ ] pytest passes
+### TASK-07: Standardize configuration approach [TOGETHER]
+
+**Files:** `satellite/src/satellite/logger.py`, all scripts
+**Problem:** Some files read JSON config, others use environment variables.
+**Fix:** Single approach — `.env` file + `.gitignore` entry.
+**Definition of done:** All modules use one consistent configuration mechanism.
+**Tests:** `pytest`
+
+-----
+
+## 🟢 LOW PRIORITY — Code Quality
+
+### TASK-08: Remove dead mqtt_publisher.py [SELF]
+
+**File:** `satellite/src/satellite/mqtt_publisher.py`
+**Fix:** Delete or explicitly label as standalone demo tool.
+**Definition of done:** `satellite_start.sh` still works correctly.
+
+-----
+
+### TASK-09: Extract lockout logic into helper function [TOGETHER]
+
+**File:** `ground/src/ground/receiver.py`
+**Problem:** Lockout block is duplicated in `handle_line()`
+and `handle_verified_line()`.
+**Fix:** Extract into private function `_handle_lockout()`.
+
+-----
+
+### TASK-10: Split receiver.py into focused modules [TOGETHER]
+
+**File:** `ground/src/ground/receiver.py`
+**Problem:** 4 distinct responsibilities in one file.
+**Fix:** Split into `file_ops.py`, `pipeline.py`, `input_adapters.py`, `cli.py`.
+
+-----
+
+### TASK-11: Remove duplication in plot.py [SELF]
+
+**File:** `ground/src/ground/plot.py`
+**Fix:** Extract private helper `_draw_charts(axes, df)`.
+
+-----
+
+### TASK-12: Remove dead commented code in logger.py [SELF]
+
+**File:** `satellite/src/satellite/logger.py`
+**Fix:** Delete commented-out lines at the top of the file.
+
+-----
+
+### TASK-13: Standardize process invocation in scripts [SELF]
+
+**File:** `scripts/satellite_start.sh`
+**Problem:** Logger is started via `python -m`, publisher via direct file path.
+**Fix:** Both use `python -m module` style.
+
+-----
+
+## ✅ COMPLETED
+
+<!-- Move finished tasks here after pytest passes and Definition of done is met -->

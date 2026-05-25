@@ -46,16 +46,12 @@ def try_import_verify():
         return dummy_verify
 
 def try_import_secman():
-    """Versucht SecurityManager zu importieren. Fallback: Dummy, der alles erlaubt und nichts loggt."""
+    """Versucht SecurityManager zu importieren. Wirft RuntimeError wenn SecurityManager nicht importiert werden kann."""
     try:
         from ground.security.security_manager import SecurityManager
         return SecurityManager
-    except Exception:
-        class DummySecman:
-            def on_packet_before_verify(self, *_a, **_kw): return True
-            def action_when_locked(self): return "reject"
-            def on_verification_result(self, **_kw): pass
-        return DummySecman
+    except Exception as e:
+        raise RuntimeError("Fehlender Security Manager: security_manager nicht gefunden. " + str(e))
 
 # ==== Pfad- und Funktionsbindung ==== #
 
@@ -286,12 +282,13 @@ def main() -> int:
                         help="Pfad für Quarantäne-CSV bei aktivem Lockout (Policy=quarantine)")
     args = parser.parse_args()
 
-    # SecurityManager-Init, tolerant bei fehlender Policy/Modul
+    # SecurityManager-Init, wirft RuntimeError bei fehlender Policy/Modul
     try:
         secman = SecurityManager(args.security_policy, security_log_path=args.security_log, audit_log_path=args.security_audit)
     except Exception as e:
         print(f"[SECURITY] Adaptive Security deaktiviert ({e})")
-        secman = None
+        raise RuntimeError("SecurityManager konnte nicht initialisiert werden: " + str(e))
+
 
     if args.simulate:
         receive_simulated(
