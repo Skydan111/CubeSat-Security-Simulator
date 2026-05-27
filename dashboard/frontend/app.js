@@ -1,0 +1,98 @@
+// ── Charts ──────────────────────────────────────────
+const CHART_CONFIG = (label, color) => ({
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label,
+        data: [],
+        borderColor: color,
+        borderWidth: 1.5,
+        pointRadius: 0,
+        tension: 0.4,
+        fill: false,
+      },
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { display: false },
+      y: {
+        ticks: { color: "#6b6b80", font: { size: 10 } },
+        grid: { color: "#2a2a35" },
+      },
+    },
+  },
+});
+
+const chartTemp = new Chart(
+  document.getElementById("chart-temp"),
+  CHART_CONFIG("Temperature", "#ff6b35"),
+);
+const chartHum = new Chart(
+  document.getElementById("chart-hum"),
+  CHART_CONFIG("Humidity", "#00d4aa"),
+);
+const chartPress = new Chart(
+  document.getElementById("chart-press"),
+  CHART_CONFIG("Pressure", "#7b8cff"),
+);
+
+// ── SSE Connection ───────────────────────────────────
+const MAX_POINTS = 30; // сколько точек показываем на графике
+
+const source = new EventSource("http://127.0.0.1:8000/stream/telemetry");
+
+source.onmessage = function (event) {
+  const data = JSON.parse(event.data);
+
+  // 1. Обновляем текущие значения
+  document.getElementById("val-temp").innerHTML =
+    data.temperature_c + '<span class="metric-unit">°C</span>';
+  document.getElementById("val-hum").innerHTML =
+    data.humidity_pct + '<span class="metric-unit">%</span>';
+  document.getElementById("val-press").innerHTML =
+    data.pressure_hpa + '<span class="metric-unit">hPa</span>';
+
+  // 2. Метка времени
+  document.getElementById("last-update").textContent =
+    "Last update: " + new Date(data.ts).toLocaleString("en-GB");
+
+  // 3. Добавляем точку на графики
+  const label = new Date(data.ts).toLocaleTimeString();
+  addPoint(chartTemp, label, data.temperature_c);
+  addPoint(chartHum, label, data.humidity_pct);
+  addPoint(chartPress, label, data.pressure_hpa);
+};
+
+function addPoint(chart, label, value) {
+  chart.data.labels.push(label);
+  chart.data.datasets[0].data.push(value);
+  if (chart.data.labels.length > MAX_POINTS) {
+    chart.data.labels.shift();
+    chart.data.datasets[0].data.shift();
+  }
+  chart.update();
+}
+
+// ── Clock ────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById("current-time").textContent =
+    now.toLocaleTimeString("en-GB");
+  document.getElementById("current-date").textContent = now
+    .toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+    .toUpperCase();
+}
+
+updateClock();
+setInterval(updateClock, 1000);
