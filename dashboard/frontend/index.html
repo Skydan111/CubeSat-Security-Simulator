@@ -154,6 +154,15 @@
         background: var(--accent-press);
       }
 
+      .metric-stats {
+        margin-top: 8px;
+        display: flex;
+        gap: 12px;
+        font-family: var(--mono);
+        font-size: 0.6rem;
+        color: var(--muted);
+      }
+
       .metric-label {
         font-family: var(--mono);
         font-size: 0.6rem;
@@ -372,6 +381,7 @@
             —<span class="metric-unit">°C</span>
           </div>
           <div class="metric-status ok" id="status-temp">NOMINAL</div>
+          <div class="metric-stats" id="stats-temp">—</div>
         </div>
         <div class="metric-card hum">
           <div class="metric-label">Humidity</div>
@@ -379,6 +389,7 @@
             —<span class="metric-unit">%</span>
           </div>
           <div class="metric-status ok" id="status-hum">NOMINAL</div>
+          <div class="metric-stats" id="stats-hum">—</div>
         </div>
         <div class="metric-card press">
           <div class="metric-label">Pressure</div>
@@ -386,6 +397,7 @@
             —<span class="metric-unit">hPa</span>
           </div>
           <div class="metric-status ok" id="status-press">NOMINAL</div>
+          <div class="metric-stats" id="stats-press">—</div>
         </div>
       </div>
 

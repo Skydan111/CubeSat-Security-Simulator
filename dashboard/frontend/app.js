@@ -80,6 +80,30 @@ function addPoint(chart, label, value) {
   chart.update();
 }
 
+// ── Stats ────────────────────────────────────────────
+async function updateStats() {
+  const response = await fetch("http://127.0.0.1:8000/telemetry/stats");
+  const stats = await response.json();
+
+  document.getElementById("stats-temp").innerHTML =
+    `<span>MIN <b>${stats.temperature.min}</b></span>
+     <span>MAX <b>${stats.temperature.max}</b></span>
+     <span>AVG <b>${stats.temperature.avg}</b></span>`;
+
+  document.getElementById("stats-hum").innerHTML =
+    `<span>MIN <b>${stats.humidity.min}</b></span>
+     <span>MAX <b>${stats.humidity.max}</b></span>
+     <span>AVG <b>${stats.humidity.avg}</b></span>`;
+
+  document.getElementById("stats-press").innerHTML =
+    `<span>MIN <b>${stats.pressure.min}</b></span>
+     <span>MAX <b>${stats.pressure.max}</b></span>
+     <span>AVG <b>${stats.pressure.avg}</b></span>`;
+}
+
+updateStats();
+setInterval(updateStats, 30000); // обновляем каждые 30 секунд
+
 // ── Clock ────────────────────────────────────────────
 function updateClock() {
   const now = new Date();
