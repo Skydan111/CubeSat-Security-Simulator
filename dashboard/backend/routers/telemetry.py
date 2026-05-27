@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from dashboard.backend.services.csv_reader import read_all, read_latest, read_last_n
+from dashboard.backend.config import THRESHOLDS
 
 
 router = APIRouter(prefix="/telemetry")
@@ -37,4 +38,8 @@ def get_stats():
             "pressure":    {"min": min_press,"max": max_press,"avg": avg_press},
         }
 
+
+@router.get("/thresholds")
+def get_thresholds():
+    return THRESHOLDS
 

@@ -43,6 +43,74 @@ const chartPress = new Chart(
   CHART_CONFIG("Pressure", "#7b8cff"),
 );
 
+// ── Thresholds ───────────────────────────────────────
+let thresholds = null;
+
+async function loadThresholds() {
+  const response = await fetch("http://127.0.0.1:8000/telemetry/thresholds");
+  thresholds = await response.json();
+}
+
+loadThresholds();
+
+function checkAlerts(data) {
+  if (!thresholds) return;
+
+  const alerts = [];
+
+  const statusTemp = document.getElementById("status-temp");
+  if (
+    data.temperature_c < thresholds.temperature_c.min ||
+    data.temperature_c > thresholds.temperature_c.max
+  ) {
+    alerts.push(`Temperature ${data.temperature_c}°C out of range`);
+    statusTemp.textContent = "ALERT";
+    statusTemp.className = "metric-status alert";
+  } else {
+    statusTemp.textContent = "NOMINAL";
+    statusTemp.className = "metric-status ok";
+  }
+
+  const statusHum = document.getElementById("status-hum");
+  if (
+    data.humidity_pct < thresholds.humidity_pct.min ||
+    data.humidity_pct > thresholds.humidity_pct.max
+  ) {
+    alerts.push(`Humidity ${data.humidity_pct}% out of range`);
+    statusHum.textContent = "ALERT";
+    statusHum.className = "metric-status alert";
+  } else {
+    statusHum.textContent = "NOMINAL";
+    statusHum.className = "metric-status ok";
+  }
+
+  const statusPress = document.getElementById("status-press");
+  if (
+    data.pressure_hpa < thresholds.pressure_hpa.min ||
+    data.pressure_hpa > thresholds.pressure_hpa.max
+  ) {
+    alerts.push(`Pressure ${data.pressure_hpa}hPa out of range`);
+    statusPress.textContent = "ALERT";
+    statusPress.className = "metric-status alert";
+  } else {
+    statusPress.textContent = "NOMINAL";
+    statusPress.className = "metric-status ok";
+  }
+
+  const list = document.getElementById("alerts-list");
+  if (alerts.length === 0) {
+    list.innerHTML =
+      '<div class="no-alerts">✓ All parameters within range</div>';
+  } else {
+    list.innerHTML = alerts
+      .map(
+        (a) =>
+          `<div class="alert-item"><span class="alert-icon">⚠</span>${a}</div>`,
+      )
+      .join("");
+  }
+}
+
 // ── SSE Connection ───────────────────────────────────
 const MAX_POINTS = 30; // сколько точек показываем на графике
 
@@ -68,6 +136,8 @@ source.onmessage = function (event) {
   addPoint(chartTemp, label, data.temperature_c);
   addPoint(chartHum, label, data.humidity_pct);
   addPoint(chartPress, label, data.pressure_hpa);
+
+  checkAlerts(data);
 };
 
 function addPoint(chart, label, value) {
