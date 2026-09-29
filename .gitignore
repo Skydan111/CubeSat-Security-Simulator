@@ -51,3 +51,7 @@ obc/config/*.json
 *.csv
 !examples/*.csv
 *.jsonl
+!ai/dataset.jsonl
+
+# KI-Modelle (zu gross fuer Git, Download-Anleitung siehe README)
+*.gguf
