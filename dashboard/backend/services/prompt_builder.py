@@ -47,7 +47,7 @@ def _deviation(value: float, limits: dict) -> float:
     return 0.0
 
 
-def _select_window(packets: list[TelemetryPacket]) -> list[TelemetryPacket]:
+def select_window(packets: list[TelemetryPacket]) -> list[TelemetryPacket]:
     """Nur Pakete der letzten ANALYSIS_WINDOW_MIN Minuten (zeitbasiert, nicht Anzahl).
 
     Erwartet Pakete in chronologischer Reihenfolge (so schreibt sie der Logger).
@@ -84,7 +84,7 @@ def _kontext(ts: datetime) -> str:
 
 def build_prompt(packets: list[TelemetryPacket]) -> str:
     """Instruction + Leerzeile + Input im Format C des Trainingsdatensatzes."""
-    window = _select_window(packets)
+    window = select_window(packets)
     latest = window[-1]
     lines = ["Parameter: Temperatur + Luftfeuchtigkeit"]
 
