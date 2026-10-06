@@ -190,3 +190,40 @@ function updateClock() {
 
 updateClock();
 setInterval(updateClock, 1000);
+
+// ── AI Analysis ──────────────────────────────────────
+const aiBtn = document.getElementById("ai-btn");
+const aiOutput = document.getElementById("ai-output");
+
+aiBtn.addEventListener("click", async () => {
+  aiBtn.disabled = true;
+  aiBtn.textContent = "Analysing…";
+  aiOutput.classList.remove("error", "active");
+
+  // Inferenz dauert auf Intel-CPU ~1–2 Minuten → sichtbarer Fortschritt
+  const started = Date.now();
+  aiOutput.textContent = "Analysing… 0 s";
+  const timer = setInterval(() => {
+    const s = Math.floor((Date.now() - started) / 1000);
+    aiOutput.textContent = `Analysing… ${s} s (approx. 1–2 min on this device)`;
+  }, 1000);
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/analyse", {
+      method: "POST",
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.detail || `HTTP ${response.status}`);
+
+    const time = new Date(body.generated_at).toLocaleTimeString("en-GB");
+    aiOutput.textContent = `${body.report}\n\n— generated ${time}`;
+    aiOutput.classList.add("active");
+  } catch (err) {
+    aiOutput.textContent = `⚠ ${err.message}`;
+    aiOutput.classList.add("error");
+  } finally {
+    clearInterval(timer);
+    aiBtn.disabled = false;
+    aiBtn.textContent = "Analyse";
+  }
+});

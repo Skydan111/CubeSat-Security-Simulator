@@ -45,7 +45,7 @@
 
       .layout {
         display: grid;
-        grid-template-rows: 60px 135px 260px 85px 110px;
+        grid-template-rows: 60px 135px 260px 85px minmax(110px, 1fr);
         height: 100vh;
         padding: 22px 30px 14px;
         gap: 10px;
@@ -349,6 +349,17 @@
 
       #ai-output.active {
         color: var(--text);
+      }
+
+      #ai-output {
+        flex: 1;
+        align-self: stretch;
+        overflow-y: auto;
+        white-space: pre-wrap;
+      }
+
+      #ai-output.error {
+        color: var(--alert);
       }
     </style>
   </head>
