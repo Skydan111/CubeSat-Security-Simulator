@@ -47,7 +47,7 @@ const chartPress = new Chart(
 let thresholds = null;
 
 async function loadThresholds() {
-  const response = await fetch("http://127.0.0.1:8000/telemetry/thresholds");
+  const response = await fetch("/telemetry/thresholds");
   thresholds = await response.json();
 }
 
@@ -114,7 +114,7 @@ function checkAlerts(data) {
 // ── SSE Connection ───────────────────────────────────
 const MAX_POINTS = 30; // сколько точек показываем на графике
 
-const source = new EventSource("http://127.0.0.1:8000/stream/telemetry");
+const source = new EventSource("/stream/telemetry");
 
 source.onmessage = function (event) {
   const data = JSON.parse(event.data);
@@ -152,7 +152,7 @@ function addPoint(chart, label, value) {
 
 // ── Stats ────────────────────────────────────────────
 async function updateStats() {
-  const response = await fetch("http://127.0.0.1:8000/telemetry/stats");
+  const response = await fetch("/telemetry/stats");
   const stats = await response.json();
 
   document.getElementById("stats-temp").innerHTML =
@@ -209,7 +209,7 @@ aiBtn.addEventListener("click", async () => {
   }, 1000);
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/analyse", {
+    const response = await fetch("/analyse", {
       method: "POST",
     });
     const body = await response.json();
