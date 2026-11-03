@@ -1,10 +1,11 @@
 from llama_cpp import Llama
 
-def load_model(model_path: str) -> Llama:
-   return Llama(
-    model_path=model_path,
-    n_ctx=2048,
-    n_threads=4,
-    verbose=True
-)
 
+def load_model(model_path: str) -> Llama:
+    return Llama(
+        model_path=model_path,
+        n_ctx=2048,
+        n_threads=4,
+        n_gpu_layers=-1,   # alle Layer auf die GPU (Metal); ohne GPU-Build automatisch CPU
+        verbose=False,
+    )
