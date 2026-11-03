@@ -38,5 +38,3 @@ else
   echo "[ground_start] Subscriber pid=$(cat "$PID_DIR/subscriber.pid"), log=$SUB_LOG"
 fi
 
-echo "[ground_start] Starting plot (GUI)..."
-python ground/src/ground/plot.py --csv data/processed/telemetry.csv --interval 2 --window 120
