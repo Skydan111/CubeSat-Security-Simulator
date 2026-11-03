@@ -5,7 +5,7 @@ packet_pipeline.py – Datenverarbeitung + Adaptive Security.
 from pathlib import Path
 import datetime
 from typing import Optional, Tuple, Dict, Any
-from ground.config.paths import PROC_PATH, REJ_PATH
+from ground.config.paths import CSV_HEADER, PROC_PATH, REJ_PATH
 from ground.verify import verify_with_config
 from ground.io_utils import append_line
 
@@ -97,7 +97,7 @@ def handle_line(
 
     # 3) Schreiben in Ziel (ohne doppelte RAW-Einträge)
     if ok:
-        append_line(PROC_PATH, line)
+        append_line(PROC_PATH, line, csv_header=CSV_HEADER)
         print("[OK] processed")
     else:
         out_line = rej_line or (line if "reason=" in line else line.rstrip() + f",reason={verify_reason}")
@@ -129,5 +129,5 @@ def handle_verified_line(
         secman.on_verification_result(ok=True, reason="ok", meta=meta)
 
     # 2) Routing: verifizierte Zeile -> PROCESSED
-    append_line(PROC_PATH, line)
+    append_line(PROC_PATH, line, csv_header=CSV_HEADER)
     print("[OK] processed (mqtt)")

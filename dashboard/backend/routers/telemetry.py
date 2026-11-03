@@ -16,27 +16,18 @@ def get_latest():
 @router.get("/stats")
 def get_stats():
     packets = read_last_n(60)
-
-    temps = [p.temperature_c for p in packets]
-    min_temp = min(temps)
-    max_temp = max(temps)
-    avg_temp = round(sum(temps) / len(temps), 2)
-
-    hum = [p.humidity_pct for p in packets]
-    min_hum = min(hum)
-    max_hum = max(hum)
-    avg_hum = round(sum(hum) / len(hum), 2)
-
-    press = [p.pressure_hpa for p in packets]
-    min_press = min(press)
-    max_press = max(press)
-    avg_press = round(sum(press) / len(press), 2)
-
     return {
-            "temperature": {"min": min_temp, "max": max_temp, "avg": avg_temp},
-            "humidity":    {"min": min_hum,  "max": max_hum,  "avg": avg_hum},
-            "pressure":    {"min": min_press,"max": max_press,"avg": avg_press},
-        }
+        "temperature": _summary([p.temperature_c for p in packets]),
+        "humidity":    _summary([p.humidity_pct for p in packets]),
+        "pressure":    _summary([p.pressure_hpa for p in packets]),
+    }
+
+
+def _summary(values: list[float]) -> dict:
+    """Min/Max/Avg; ohne Daten None-Werte statt Exception (fail-secure)."""
+    if not values:
+        return {"min": None, "max": None, "avg": None}
+    return {"min": min(values), "max": max(values), "avg": round(sum(values) / len(values), 2)}
 
 
 @router.get("/thresholds")

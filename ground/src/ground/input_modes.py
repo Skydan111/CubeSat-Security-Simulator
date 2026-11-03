@@ -8,13 +8,13 @@ import datetime
 from typing import Optional
 from ground.mqtt_guard import MqttMessageGuard
 from ground.io_utils import append_line
-from ground.config.paths import RAW_PATH
+from ground.config.paths import CSV_HEADER, RAW_PATH
 from ground.packet_pipeline import handle_line, is_header
 
 
 def ingest_raw_line(line: str) -> None:
     """Schreibt eine unveränderte Zeile in RAW (Eingangsspur)."""
-    append_line(RAW_PATH, line)
+    append_line(RAW_PATH, line, csv_header=CSV_HEADER)
 
 def receive_simulated(n: int = 3, secman: Optional[object] = None, quarantine_path: Optional[Path] = None) -> None:
     """Einfacher Simulator mit absichtlicher Fakesignatur."""
