@@ -1,14 +1,14 @@
-# Entwicklungsprotokoll #3 – Phase: Ground Telemetry Visualization
+# Entwicklungsprotokoll #3 – Phase: Control Center Telemetry Visualization
 
 **Datum:** 2025-11-06
-**Phase:** Ground Station Development
+**Phase:** Control Center Development
 **Lead:** Oleg Skydan
 
 ---
 
-## 🎯 Missionsziel
-Entwicklung und Test eines Telemetrie-Visualisierungsmoduls auf der Bodenstation (Ground Station).
-Das Ziel dieser Phase war es, eingehende Sensordaten aus der CubeSat-Simulation (Raspberry Pi / OBC)
+## 🎯 Ziel der Phase
+Entwicklung und Test eines Telemetrie-Visualisierungsmoduls im Leitstand.
+Das Ziel dieser Phase war es, eingehende Sensordaten aus der Sensor-Simulation (Raspberry Pi / Sensorrechner)
 in Echtzeit anzuzeigen und zu analysieren.
 
 ---
@@ -30,7 +30,7 @@ in Echtzeit anzuzeigen und zu analysieren.
 
 ### Modul: `ground/plot.py`
 
-Das Visualisierungsmodul stellt eine grafische Missionsansicht der Telemetriedaten bereit.
+Das Visualisierungsmodul stellt eine grafische Live-Ansicht der Telemetriedaten bereit.
 
 #### 🔍 Hauptfunktionen
 
@@ -59,20 +59,20 @@ Aktualisierung erfolgt in konfigurierbaren Intervallen (Standard: 2 Sekunden).
 
 ## 🧠 Erkenntnisse dieser Phase
 - Die Nutzung von **pandas** und **matplotlib** ist für Echtzeit-Darstellungen äußerst effizient.
-- Durch den **Live-Modus** entsteht ein realistisches Gefühl einer aktiven Mission.
+- Durch den **Live-Modus** entsteht ein realistisches Gefühl eines laufenden Messbetriebs.
 - Die klare CLI-Struktur erleichtert die Integration in automatisierte Skripte (z. B. `receiver.py`).
-- Diese Visualisierung dient als Basis für das zukünftige **Mission Control Dashboard (Streamlit)**.
+- Diese Visualisierung dient als Basis für das zukünftige **Leitstand-Dashboard (Streamlit)**.
 
 ---
 
-## 🚀 Nächste Schritte (Phase #4 – OBC-Integration)
+## 🚀 Nächste Schritte (Phase #4 – Integration des Sensorrechners)
 
 1. Implementierung des Moduls `bme_log.py` auf dem Raspberry Pi (On-Board Computer).
 2. Erfassen echter Sensordaten über den BME280-Sensor (I²C).
-3. HMAC-Signierung und Übertragung an die Bodenstation.
+3. HMAC-Signierung und Übertragung an den Leitstand.
 4. Erweiterung der Visualisierung um Sicherheitsereignisse und Statusmeldungen.
 
 ---
 
-> 💬 *„Eine Mission ist erst dann echt, wenn die Daten auf dem Bildschirm lebendig werden.“*
-> — Oleg Skydan, Missionsleiter
+> 💬 *„Ein System ist erst dann echt, wenn die Daten auf dem Bildschirm lebendig werden.“*
+> — Oleg Skydan, Projektleiter

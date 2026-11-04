@@ -6,7 +6,7 @@
 ---
 
 ## 🧩 Zusammenfassung
-In dieser Phase wurde die komplette Datenverarbeitung zwischen **OBC (Raspberry Pi 4)** und **Bodenstation (Mac)** erfolgreich stabilisiert.
+In dieser Phase wurde die komplette Datenverarbeitung zwischen **Sensorrechner (Raspberry Pi 4)** und **Leitstand (Mac)** erfolgreich stabilisiert.
 Das System erkennt, verarbeitet und validiert Telemetrie-Pakete automatisch — fehlerhafte oder manipulierte Datensätze werden abgewiesen, korrekte werden in den „processed“-Pfad überführt.
 
 Die Pfadlogik wurde harmonisiert, sodass sich sämtliche Daten im zentralen Verzeichnis
@@ -15,7 +15,7 @@ Ein unbeabsichtigter Selbst-Ingest-Fehler („Datei schreibt in sich selbst“) 
 
 ---
 
-## 🛰️ Durchgeführte Schritte
+## 🔧 Durchgeführte Schritte
 
 1. **Pfadstruktur harmonisiert**
    - Einheitliches Daten-Root: `data/{raw, processed, rejected, archive}`
@@ -32,8 +32,8 @@ Ein unbeabsichtigter Selbst-Ingest-Fehler („Datei schreibt in sich selbst“) 
    - Keine Duplikate oder endlosen Schleifen
 
 4. **End-to-End Test bestanden**
-   - Telemetrie auf OBC generiert
-   - Über `scp` an Bodenstation übertragen
+   - Telemetrie auf dem Sensorrechner generiert
+   - Über `scp` an den Leitstand übertragen
    - Empfangen, geprüft und korrekt in `data/processed/` gespeichert
 
 ---
@@ -41,7 +41,7 @@ Ein unbeabsichtigter Selbst-Ingest-Fehler („Datei schreibt in sich selbst“) 
 ## 📈 Resultat
 ✅ Vollständig funktionsfähige Telemetrie-Pipeline
 ✅ Datenintegrität kryptografisch gewährleistet
-✅ Bodenstation und OBC perfekt synchronisiert
+✅ Leitstand und Sensorrechner perfekt synchronisiert
 
 ---
 
@@ -51,4 +51,4 @@ Ein unbeabsichtigter Selbst-Ingest-Fehler („Datei schreibt in sich selbst“) 
 
 ---
 
-📘 *Report erstellt von Oleg Skydan – CubeSat Security Simulator Projekt (Fachschule Wiesau)*  
+📘 *Report erstellt von Oleg Skydan – Warehouse-Monitor-Projekt (Fachschule Wiesau)*  

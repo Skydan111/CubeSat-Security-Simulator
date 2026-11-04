@@ -13,4 +13,4 @@ csv_path: logs/telemetry.csv
 interval_sec: 60
 
 # Hinweis: hmac_secret_hex wird nicht hier gespeichert.
-# Bitte Umgebungsvariable SAT_SECRET_HEX setzen.
+# Bitte Umgebungsvariable SENSOR_SECRET_HEX setzen.

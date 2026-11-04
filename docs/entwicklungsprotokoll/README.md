@@ -2,7 +2,7 @@
 
 Dieses Verzeichnis dokumentiert die Entwicklung des Projekts in chronologischer Reihenfolge (ab November 2025).
 
-> **Hinweis:** Das Projekt hieß bis Oktober 2026 *CubeSat Security Simulator*. Die Einträge dokumentieren den damaligen Stand und verwenden deshalb die ursprünglichen Begriffe (Satellit, Bodenstation, OBC, Mission). Die heutige Terminologie ist im [Glossar](../glossar.md) beschrieben.
+> **Hinweis:** Die Einträge geben den jeweiligen Entwicklungsstand wieder. Dateipfade und Programmausgaben sind im damaligen Zustand belassen und können von der heutigen Projektstruktur abweichen. Die aktuelle Terminologie ist im [Glossar](../glossar.md) beschrieben.
 
 | Eintrag | Thema |
 |---|---|
@@ -13,3 +13,13 @@ Dieses Verzeichnis dokumentiert die Entwicklung des Projekts in chronologischer 
 | [#5](eintrag_05.md) | Schlüssel-Synchronisierung und erster Übertragungstest |
 | [#6](eintrag_06.md) | Stabilisierung der sicheren Telemetrie-Pipeline |
 | [#7](eintrag_07.md) | Adaptive Security Mode |
+
+## Frühere Pfade
+
+In älteren Einträgen erscheinen Pfade aus der ursprünglichen Projektstruktur:
+
+| Damals | Heute |
+|---|---|
+| `cube/`, `obc/` | Projektwurzel bzw. `zone_sensor/` |
+| `ground/` | `control_center/` |
+| `ground.json`, `mission.json` | `configs/control_center.json`, `configs/zone_sensor.yaml` |

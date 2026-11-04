@@ -4,8 +4,6 @@ Sichere IoT-Pipeline zur Überwachung von Lagerbedingungen – vom physischen Se
 
 Ein Zonensensor (Raspberry Pi mit BME280) misst Temperatur und Luftfeuchtigkeit in einer Lagerzone, signiert jeden Messwert mit HMAC-SHA256 und überträgt ihn per MQTT an den Leitstand. Dort werden Signatur, Frische und Duplikate geprüft; nur verifizierte Daten erreichen das Dashboard. Anti-Replay-Mechanismen und eine adaptive Sicherheitslogik schützen die Übertragung gegen Manipulation und Wiederholungsangriffe.
 
-> Das Projekt hieß bis Oktober 2026 *CubeSat Security Simulator*. Begriffe und frühere Bezeichnungen: siehe [Glossar](docs/glossar.md).
-
 ---
 
 ## Was dieses Projekt demonstriert

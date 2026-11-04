@@ -6,7 +6,7 @@
 
 ---
 
-## 🎯 Missionsziel
+## 🎯 Ziel der Phase
 Erfolgreicher Systemstart des Raspberry Pi („pi-cube“) und erste Tests der Telemetrie-Simulation.
 Ziel dieser Phase war die Inbetriebnahme des On-Board-Computers, die Einrichtung des SSH-Zugangs und die Erzeugung der ersten Telemetriedaten im CSV-Format.
 
@@ -49,7 +49,7 @@ ts,temperature_c,humidity_pct,pressure_hpa,mode,sig
    – I²C-Schnittstelle aktivieren
    – Testskript `bme280.py` anpassen
 
-2. **Automatischer Missionsstart**
+2. **Automatischer Systemstart**
    – Service (`systemd`) für Autostart von Telemetrie-Logging konfigurieren
 
 3. **Datenupload vorbereiten**
@@ -57,14 +57,14 @@ ts,temperature_c,humidity_pct,pressure_hpa,mode,sig
 
 ---
 
-## 📓 Kommentar des Missionsleiters
+## 📓 Kommentar des Projektleiters
 
-> *„Der Pi-Cube lebt!
+> *„Der Sensorrechner lebt!
 >  Systemdiagnose stabil, Telemetrie läuft,
->  und die Mission erreicht Orbit-Level-1.“*
->  — **Oleg Skydan**, Missionsleiter
+>  und das System erreicht die erste Ausbaustufe.“*
+>  — **Oleg Skydan**, Projektleiter
 
 ---
 
 📁 *Lokale Logs und Signaturdateien gespeichert unter* `~/obc/logs/`
-🛰️ *System bereit für Phase 3: Sensorintegration.*
+✅ *System bereit für Phase 3: Sensorintegration.*

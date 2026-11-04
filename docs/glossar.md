@@ -24,17 +24,3 @@ Einheitliche Begriffe für Code, Dokumentation und Präsentation des Warehouse M
 | **Envelope** | `EnvelopeV1` | JSON-Hülle einer MQTT-Nachricht mit `zone_id`, `msg_id`, Zeitstempel und signierter Nutzlast (Base64). |
 | **Telemetrie** | `telemetry` | Laufend übertragene Messwerte (Temperatur, Luftfeuchtigkeit). Üblicher Begriff im industriellen IoT. |
 | **Messlauf** | – | Ein zusammenhängender Zeitraum der Datenerfassung. |
-
-## Frühere Begriffe
-
-Das Projekt hieß bis Oktober 2026 *CubeSat Security Simulator*. Ältere Einträge im [Entwicklungsprotokoll](entwicklungsprotokoll/README.md) verwenden noch diese Begriffe:
-
-| Früher | Heute |
-|---|---|
-| Satellit / Satellite (`satellite/`) | Zonensensor (`zone_sensor/`) |
-| Bodenstation / Ground Station (`ground/`) | Leitstand (`control_center/`) |
-| OBC (On-Board Computer) | Sensorrechner |
-| Mission | Messlauf |
-| Missionsschlüssel | Geräteschlüssel |
-| `sat_id` / `SAT-001` | `zone_id` / `ZONE-01` |
-| `cubesat/v1/…` | `warehouse/v1/…` |

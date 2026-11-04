@@ -1,13 +1,13 @@
-# Entwicklungsprotokoll #4 – OBC Telemetry & Security Module
+# Entwicklungsprotokoll #4 – Sensor Computer Telemetry & Security Module
 
 **Datum:** 2025-11-06
-**Phase:** On-Board Computer (OBC) Deployment
+**Phase:** Sensor Computer Deployment
 **Lead:** Oleg Skydan
 
 ---
 
 ## 🎯 Ziel der Phase
-Ziel dieser Etappe war es, den Bordcomputer (OBC) des CubeSat Security Simulators vollständig zu konfigurieren.
+Ziel dieser Etappe war es, den Sensorrechner des Warehouse Monitors vollständig zu konfigurieren.
 Dazu gehören:
 - Einrichtung des Telemetrie-Loggers auf dem Raspberry Pi,
 - Implementierung der Daten-Signierung mittels HMAC-SHA256,
@@ -25,7 +25,7 @@ Dazu gehören:
 
 ---
 
-## ⚙️ Funktionsweise (OBC)
+## ⚙️ Funktionsweise (Sensorrechner)
 
 ```text
 [Raspberry Pi 4]
@@ -42,7 +42,7 @@ Dazu gehören:
     ├─ mode: simulate / sensor
     ├─ csv_path: /home/pi/obc/logs/telemetry.csv
     ├─ sample_interval_sec: 60
-    └─ secret_hex: <missionsschlüssel>
+    └─ secret_hex: <geräteschlüssel>
 ```
 
 ---
@@ -50,17 +50,17 @@ Dazu gehören:
 ## 🔐 Sicherheitsprinzip
 
 	•	Jede Messung wird mit HMAC-SHA256 signiert.
-	•	Der geheime Schlüssel (secret_hex) ist nur auf dem OBC gespeichert.
-	•	Die Bodenstation überprüft die Signatur über verify.py und verwirft manipulierte Daten.
+	•	Der geheime Schlüssel (secret_hex) ist nur auf dem Sensorrechner gespeichert.
+	•	Der Leitstand überprüft die Signatur über verify.py und verwirft manipulierte Daten.
 	•	Damit ist sichergestellt, dass keine Telemetrie verfälscht werden kann.
 
 ---
 
 ## 🧠 Erkenntnisse dieser Phase
 
-	•	OBC kann sowohl im Simulationsmodus als auch mit echtem BME280-Sensor betrieben werden.
+	•	Der Sensorrechner kann sowohl im Simulationsmodus als auch mit echtem BME280-Sensor betrieben werden.
 	•	Pfade werden dynamisch aus config.json geladen – volle Flexibilität bei Deployment.
-	•	Die Datenstruktur ist kompatibel mit der Bodenstations-Software (plot.py, receiver.py).
+	•	Die Datenstruktur ist kompatibel mit der Leitstand-Software (plot.py, receiver.py).
 	•	Das System kann ohne Internetverbindung vollständig autark Telemetrie generieren und sichern.
 
 ---
@@ -69,10 +69,10 @@ Dazu gehören:
 
 	1.	Integration des realen BME280-Sensors auf dem Raspberry Pi.
 	2.	Signierung der Telemetriedaten mit hmac_sign.py.
-	3.	Übertragung zur Bodenstation über SSH, HTTP oder MQTT.
-	4.	Validierung der Signaturen mit verify.py auf der Bodenstation.
+	3.	Übertragung zum Leitstand über SSH, HTTP oder MQTT.
+	4.	Validierung der Signaturen mit verify.py im Leitstand.
 
 ---
 
->> 🧭 „Der Bordcomputer arbeitet stabil – das Herz der Mission schlägt.“
->> — Oleg Skydan, Missionsleiter
+>> 🧭 „Der Sensorrechner arbeitet stabil – das Herz des Systems schlägt.“
+>> — Oleg Skydan, Projektleiter

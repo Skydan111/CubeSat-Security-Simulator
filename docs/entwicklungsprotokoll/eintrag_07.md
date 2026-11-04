@@ -6,14 +6,14 @@
 ---
 
 ## 🧩 Zusammenfassung
-In dieser Phase wurde die Bodenstation erfolgreich um einen **adaptiven Sicherheitsmodus** erweitert.
+In dieser Phase wurde der Leitstand erfolgreich um einen **adaptiven Sicherheitsmodus** erweitert.
 Das System analysiert eingehende Telemetrie, erkennt sicherheitskritische Muster (invalid signatures, malformed packets, hohe Fehlerraten) und aktiviert automatisch Lockouts, Quarantäne oder Drop-Mechanismen.
 
 Das Ergebnis ist eine **resiliente, selbstregulierende Telemetrie-Pipeline**, die Manipulationen erkennt und autonom darauf reagiert.
 
 ---
 
-## 🛰️ Durchgeführte Schritte
+## 🔧 Durchgeführte Schritte
 
 ### 1. **Sicherheitsrichtlinie (YAML-Policy) implementiert**
 - Einführung der Datei `configs/security_policy.yaml`
@@ -31,7 +31,7 @@ Das Ergebnis ist eine **resiliente, selbstregulierende Telemetrie-Pipeline**, di
 ---
 
 ### 2. **SecurityManager entwickelt**
-- Zentrale Sicherheitskomponente der Bodenstation erstellt.
+- Zentrale Sicherheitskomponente des Leitstands erstellt.
 - Funktionen implementiert:
   - Sliding-Window-Auswertung aller Verify-Events
   - Berechnung der Weighted Fail Ratio
@@ -142,5 +142,5 @@ E -- Nein --> P2[Continue Normal Operation]
 
 ---
 
-📘 *Report erstellt von Oleg Skydan – CubeSat Security Simulator Projekt (Fachschule Wiesau)*
+📘 *Report erstellt von Oleg Skydan – Warehouse-Monitor-Projekt (Fachschule Wiesau)*
 

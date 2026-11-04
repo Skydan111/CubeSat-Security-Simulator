@@ -1,14 +1,14 @@
-# Entwicklungsprotokoll #1 – Phase: Pre-Launch
+# Entwicklungsprotokoll #1 – Phase: Projektstart
 
 **Datum:** 2025-11-03
-**Phase:** Pre-Launch (Initial Setup)
+**Phase:** Projektstart (Initial Setup)
 **Lead:** Oleg Skydan
 
 ---
 
-## 🎯 Missionsziel
+## 🎯 Ziel der Phase
 Vorbereitung der technischen und dokumentarischen Grundlage
-für das CubeSat Security Simulator Projekt.
+für das Warehouse-Monitor-Projekt.
 Ziel dieser Phase war es, die Entwicklungsumgebung, Repository-Struktur
 und Dokumentation aufzubauen, bevor mit der Sensorintegration begonnen wird.
 
@@ -22,7 +22,7 @@ und Dokumentation aufzubauen, bevor mit der Sensorintegration begonnen wird.
 | Repository-Struktur | ✅ | cube/, ground/, docs/ erstellt |
 | Virtuelle Umgebung | ✅ | venv initialisiert und getestet |
 | README | ✅ | erstellt, formatiert, GitHub-kompatibel ausgerichtet |
-| Mission Reports | 🟢 | Basisdokument erstellt |
+| Entwicklungsprotokoll | 🟢 | Basisdokument erstellt |
 | Hardware | ⏳ | Raspberry Pi 4 + Sensor BME280 in Lieferung |
 
 ---
@@ -56,19 +56,19 @@ und Dokumentation aufzubauen, bevor mit der Sensorintegration begonnen wird.
    - Telemetriedaten (Temperatur, Luftfeuchtigkeit, Druck) lokal loggen
 
 3. **Datenübertragung (optional vorbereiten)**
-   - MQTT-Broker-Setup auf Bodenstation planen
+   - MQTT-Broker-Setup auf dem Leitstand planen
    - Entwurf für `receiver.py` skizzieren
 
 ---
 
-## 📓 Kommentar des Missionsleiters
+## 📓 Kommentar des Projektleiters
 
-> *„Der Pre-Launch war erfolgreich abgeschlossen.
->  Alle Systeme sind bereit, der CubeSat tritt in die Telemetrie-Vorbereitungsphase ein.“*
->  — **Oleg Skydan**, Missionsleiter
+> *„Der Projektstart war erfolgreich abgeschlossen.
+>  Alle Systeme sind bereit, das System tritt in die Telemetrie-Vorbereitungsphase ein.“*
+>  — **Oleg Skydan**, Projektleiter
 
 ## 🧰 Hardware Arrival Log
-**Mission Phase:** Ground System Deployment
+**Project Phase:** Control Center Deployment
 **Date:** 2025-11-04
 **Engineer:** O. Skydan
 
@@ -77,7 +77,7 @@ und Dokumentation aufzubauen, bevor mit der Sensorintegration begonnen wird.
 #### 🧠 Core System
 | Component | Description | Status |
 |------------|--------------|--------|
-| **Raspberry Pi 4 Model B (4 GB RAM)** | Main on-board computer for telemetry simulation and secure data transmission | ✅ |
+| **Raspberry Pi 4 Model B (4 GB RAM)** | Main sensor computer for telemetry simulation and secure data transmission | ✅ |
 | **Power Supply (USB-C 15 W)** | Stable power source for Raspberry Pi | ✅ |
 | **Micro HDMI Cable** | Video output connection for setup and diagnostics | ✅ |
 | **MicroSD Card (64 GB, SanDisk Ultra)** | Primary storage and OS medium | ✅ |
@@ -92,7 +92,7 @@ und Dokumentation aufzubauen, bevor mit der Sensorintegration begonnen wird.
 
 ### 🖼️ Visual Inspection
 Photos confirm that all items are factory-sealed, undamaged and match expected configuration.
-The breadboard kit provides full flexibility for rapid prototyping of the CubeSat Security Simulator telemetry module.
+The breadboard kit provides full flexibility for rapid prototyping of the Warehouse Monitor telemetry module.
 
 ### 🪜 Next Steps
 1. Assemble Raspberry Pi and attach heatsinks.
@@ -100,7 +100,7 @@ The breadboard kit provides full flexibility for rapid prototyping of the CubeSa
 3. Configure SSH access and network connection.
 4. Begin integration of sensor module (BME280) for telemetry testing.
 
-> 🛰️ *“Every ground station starts with a single wire.”*
+> 💡 *“Every monitoring system starts with a single wire.”*
 
 📁 *All visual inspection photos stored locally at* `docs/hardware/` *(not pushed to GitHub for repository optimization).*
 
