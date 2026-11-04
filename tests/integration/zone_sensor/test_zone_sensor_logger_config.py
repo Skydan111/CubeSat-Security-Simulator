@@ -55,7 +55,7 @@ def test_logger_uses_real_satellite_json_config(monkeypatch, tmp_path):
     # Останавливаем после 1 итерации
     monkeypatch.setattr(sensor_logger.time, "sleep", lambda _sec: (_ for _ in ()).throw(KeyboardInterrupt))
 
-    monkeypatch.setenv("SAT_SECRET_HEX", "a54f2e7b3c9084ee2a6b9f1d77c4a3e9b2d1c0f4e6a8b0c2d4f6e8a0c1d2e3f4")
+    monkeypatch.setenv("SENSOR_SECRET_HEX", "a54f2e7b3c9084ee2a6b9f1d77c4a3e9b2d1c0f4e6a8b0c2d4f6e8a0c1d2e3f4")
 
     with pytest.raises(KeyboardInterrupt):
         sensor_logger.main()

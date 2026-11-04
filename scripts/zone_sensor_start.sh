@@ -6,7 +6,7 @@ cd "$ROOT"
 
 source .venv/bin/activate
 
-export SAT_ID="${SAT_ID:-SAT-001}"
+export ZONE_ID="${ZONE_ID:-ZONE-01}"
 export MQTT_BROKER_HOST="${MQTT_BROKER_HOST:-192.168.2.32}"
 export MQTT_BROKER_PORT="${MQTT_BROKER_PORT:-1883}"
 

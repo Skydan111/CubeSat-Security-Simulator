@@ -75,9 +75,9 @@ def _wait_for_subscriber_ready(sub_proc: subprocess.Popen[str], timeout_s: float
 
 
 def test_mqtt_end_to_end_50_messages() -> None:
-    sat_id = "SAT-001"
+    zone_id = "ZONE-01"
     secret_hex = "deadbeef"
-    topic = telemetry_topic(sat_id)
+    topic = telemetry_topic(zone_id)
 
     # --- Docker Broker hochfahren ---
     subprocess.run(
@@ -96,8 +96,8 @@ def test_mqtt_end_to_end_50_messages() -> None:
 
     # --- Subscriber starten (als eigener Prozess) ---
     env = os.environ.copy()
-    env["SAT_ID"] = sat_id
-    env["SAT_SECRET_HEX"] = secret_hex
+    env["ZONE_ID"] = zone_id
+    env["SENSOR_SECRET_HEX"] = secret_hex
     env["MQTT_BROKER_HOST"] = "localhost"
     env["MQTT_BROKER_PORT"] = "1883"
     env["DEDUP_CACHE_SIZE"] = "500"
@@ -139,7 +139,7 @@ def test_mqtt_end_to_end_50_messages() -> None:
 
             env_msg = EnvelopeV1(
                 v="1",
-                sat_id=sat_id,
+                zone_id=zone_id,
                 msg_type="telemetry",
                 msg_id=os.urandom(8).hex(),
                 ts_utc=EnvelopeV1.now_utc_iso(),

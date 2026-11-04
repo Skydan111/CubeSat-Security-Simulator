@@ -31,9 +31,9 @@ def _count(path: Path) -> int:
 
 
 def test_mqtt_tampering_drop_and_log() -> None:
-    sat_id = "SAT-001"
+    zone_id = "ZONE-01"
     secret_hex = "deadbeef"
-    topic = telemetry_topic(sat_id)
+    topic = telemetry_topic(zone_id)
 
     subprocess.run(
         ["docker", "compose", "-f", str(COMPOSE_FILE), "up", "-d"],
@@ -45,8 +45,8 @@ def test_mqtt_tampering_drop_and_log() -> None:
     before_ok = _count(PROCESSED_FILE)
 
     env = os.environ.copy()
-    env["SAT_ID"] = sat_id
-    env["SAT_SECRET_HEX"] = secret_hex
+    env["ZONE_ID"] = zone_id
+    env["SENSOR_SECRET_HEX"] = secret_hex
     env["MQTT_BROKER_HOST"] = "localhost"
     env["MQTT_BROKER_PORT"] = "1883"
     env["PYTHONUNBUFFERED"] = "1"
@@ -85,7 +85,7 @@ def test_mqtt_tampering_drop_and_log() -> None:
 
         env_msg = EnvelopeV1(
             v="1",
-            sat_id=sat_id,
+            zone_id=zone_id,
             msg_type="telemetry",
             msg_id="tamper-001",
             ts_utc=EnvelopeV1.now_utc_iso(),

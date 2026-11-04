@@ -10,7 +10,7 @@ from typing import Any, Dict
 @dataclass(frozen=True)
 class EnvelopeV1:
     v: str
-    sat_id: str
+    zone_id: str
     msg_type: str
     msg_id: str
     ts_utc: str
@@ -34,14 +34,14 @@ class EnvelopeV1:
         if obj.get("v") != "1":
             raise ValueError("Invalid envelope version (expected '1').")
 
-        required = ["sat_id", "msg_type", "msg_id", "ts_utc", "qos", "payload_b64"]
+        required = ["zone_id", "msg_type", "msg_id", "ts_utc", "qos", "payload_b64"]
         for k in required:
             if k not in obj:
                 raise ValueError(f"Missing field: {k}")
 
         return EnvelopeV1(
             v="1",
-            sat_id=str(obj["sat_id"]),
+            zone_id=str(obj["zone_id"]),
             msg_type=str(obj["msg_type"]),
             msg_id=str(obj["msg_id"]),
             ts_utc=str(obj["ts_utc"]),

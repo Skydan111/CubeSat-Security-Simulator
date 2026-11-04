@@ -78,7 +78,7 @@ def test_logger_writes_one_valid_signed_line(monkeypatch, tmp_path):
     # останавливаем цикл после первой итерации
     monkeypatch.setattr(sensor_logger.time, "sleep", lambda _sec: (_ for _ in ()).throw(KeyboardInterrupt))
 
-    monkeypatch.setenv("SAT_SECRET_HEX", SECRET)
+    monkeypatch.setenv("SENSOR_SECRET_HEX", SECRET)
 
     with pytest.raises(KeyboardInterrupt):
         sensor_logger.main()
@@ -137,7 +137,7 @@ def test_logger_appends_and_header_not_duplicated(monkeypatch, tmp_path):
 
     monkeypatch.setattr(sensor_logger.time, "sleep", fake_sleep)
 
-    monkeypatch.setenv("SAT_SECRET_HEX", SECRET)
+    monkeypatch.setenv("SENSOR_SECRET_HEX", SECRET)
 
     with pytest.raises(KeyboardInterrupt):
         sensor_logger.main()

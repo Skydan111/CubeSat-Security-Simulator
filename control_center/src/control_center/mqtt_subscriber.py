@@ -23,8 +23,8 @@ def _env(name: str, default: str) -> str:
 
 def on_connect(client: mqtt.Client, userdata: object, flags: dict, rc: int) -> None:
     # Callback: wird bei erfolgreicher Verbindung aufgerufen.
-    sat_id: str = userdata["sat_id"]  # type: ignore[index]
-    topic = telemetry_topic(sat_id)
+    zone_id: str = userdata["zone_id"]  # type: ignore[index]
+    topic = telemetry_topic(zone_id)
 
     if rc != 0:
         print(f"[control_center] MQTT connect failed rc={rc}", file=sys.stderr)
@@ -43,7 +43,7 @@ def on_message(client: mqtt.Client, userdata: object, msg: mqtt.MQTTMessage) -> 
         guard: MqttMessageGuard = userdata["guard"]  # type: ignore[index]
 
         # 1) Dedup
-        if guard.is_duplicate(env.sat_id, env.msg_id):
+        if guard.is_duplicate(env.zone_id, env.msg_id):
             print(f"[control_center] DROP_DUPLICATE msg_id={env.msg_id}", file=sys.stderr)
             return
 
@@ -86,10 +86,10 @@ def on_message(client: mqtt.Client, userdata: object, msg: mqtt.MQTTMessage) -> 
 def main() -> int:
     broker_host = _env("MQTT_BROKER_HOST", "localhost")
     broker_port = int(_env("MQTT_BROKER_PORT", "1883"))
-    sat_id = _env("SAT_ID", "SAT-001")
-    secret_hex = os.getenv("SAT_SECRET_HEX")
+    zone_id = _env("ZONE_ID", "ZONE-01")
+    secret_hex = os.getenv("SENSOR_SECRET_HEX")
     if secret_hex is None:
-            raise RuntimeError("SAT_SECRET_HEX nicht gesetzt. Bitte Umgebungsvariable setzen.")
+            raise RuntimeError("SENSOR_SECRET_HEX nicht gesetzt. Bitte Umgebungsvariable setzen.")
     policy_path = _env("SECURITY_POLICY_PATH", "configs/security_policy.yaml")
     secman = SecurityManager(policy_path=policy_path)
 
@@ -99,9 +99,9 @@ def main() -> int:
     guard = MqttMessageGuard(GuardConfig(dedup_size=dedup_size, max_skew_seconds=max_skew))
 
     client = mqtt.Client(
-        client_id=f"ground-{sat_id}",
+        client_id=f"control-center-{zone_id}",
         userdata={
-            "sat_id": sat_id,
+            "zone_id": zone_id,
             "secret_hex": secret_hex,
             "guard": guard,
             "secman": secman,
@@ -111,7 +111,7 @@ def main() -> int:
     client.on_connect = on_connect
     client.on_message = on_message
 
-    print(f"[control_center] Connecting to mqtt://{broker_host}:{broker_port} (sat_id={sat_id})")
+    print(f"[control_center] Connecting to mqtt://{broker_host}:{broker_port} (zone_id={zone_id})")
     client.connect(broker_host, broker_port, keepalive=30)
     client.loop_forever()
     return 0

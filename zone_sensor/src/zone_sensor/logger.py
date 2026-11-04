@@ -27,9 +27,9 @@ def main():
     sensor = BME280Reader()
     write_header_if_needed(CSV_PATH)
     interval = int(CFG["interval_sec"])
-    secret_hex = os.getenv("SAT_SECRET_HEX")
+    secret_hex = os.getenv("SENSOR_SECRET_HEX")
     if secret_hex is None:
-            raise RuntimeError("SAT_SECRET_HEX nicht gesetzt. Bitte Umgebungsvariable setzen.")
+            raise RuntimeError("SENSOR_SECRET_HEX nicht gesetzt. Bitte Umgebungsvariable setzen.")
 
     print(f"[OBC] logging to {CSV_PATH} every {interval}s ... Ctrl+C to stop")
     while True:

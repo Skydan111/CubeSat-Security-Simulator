@@ -8,7 +8,7 @@ from typing import Dict
 
 @dataclass(frozen=True)
 class GuardConfig:
-    # Dedup: Anzahl der zuletzt gesehenen msg_id pro sat_id.
+    # Dedup: Anzahl der zuletzt gesehenen msg_id pro zone_id.
     dedup_size: int = 500
     # Freshness: erlaubte Zeitabweichung in Sekunden (Replay/Clock Skew Schutz).
     max_skew_seconds: int = 120
@@ -33,14 +33,14 @@ class DedupLRU:
 class MqttMessageGuard:
     def __init__(self, cfg: GuardConfig) -> None:
         self._cfg = cfg
-        self._dedup_by_sat: Dict[str, DedupLRU] = {}
+        self._dedup_by_zone: Dict[str, DedupLRU] = {}
 
-    def is_duplicate(self, sat_id: str, msg_id: str) -> bool:
+    def is_duplicate(self, zone_id: str, msg_id: str) -> bool:
         # Dedup pro Satellite-ID.
-        cache = self._dedup_by_sat.get(sat_id)
+        cache = self._dedup_by_zone.get(zone_id)
         if cache is None:
             cache = DedupLRU(self._cfg.dedup_size)
-            self._dedup_by_sat[sat_id] = cache
+            self._dedup_by_zone[zone_id] = cache
         return cache.seen_before(msg_id)
 
     def is_fresh(self, ts_utc: str) -> bool:

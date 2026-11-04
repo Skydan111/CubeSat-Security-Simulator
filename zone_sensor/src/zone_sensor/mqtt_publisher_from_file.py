@@ -40,13 +40,13 @@ def is_data_line(line: str) -> bool:
 def main() -> int:
     broker_host = _env("MQTT_BROKER_HOST", "localhost")
     broker_port = int(_env("MQTT_BROKER_PORT", "1883"))
-    sat_id = _env("SAT_ID", "SAT-001")
+    zone_id = _env("ZONE_ID", "ZONE-01")
     interval_s = float(_env("PUBLISH_INTERVAL_S", "2.0"))
     telemetry_file = Path(_env("TELEMETRY_FILE", "data/logs/telemetry.csv"))
 
-    topic = telemetry_topic(sat_id)
+    topic = telemetry_topic(zone_id)
 
-    client = mqtt.Client(client_id=f"sat-{sat_id}-file")
+    client = mqtt.Client(client_id=f"zone-sensor-{zone_id}-file")
     client.connect(broker_host, broker_port, keepalive=30)
     client.loop_start()
 
@@ -84,7 +84,7 @@ def main() -> int:
 
                 env = EnvelopeV1(
                     v="1",
-                    sat_id=sat_id,
+                    zone_id=zone_id,
                     msg_type="telemetry",
                     msg_id=str(uuid.uuid4()),
                     ts_utc=EnvelopeV1.now_utc_iso(),
