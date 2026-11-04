@@ -1,6 +1,10 @@
-# CubeSat Secure Telemetry Simulator
+# Warehouse Monitor
 
-End-to-end abgesicherte Telemetrie-Pipeline von einem simulierten CubeSat-Satelliten (Raspberry Pi) zur Bodenstation mit HMAC-SHA256 Integritätsschutz, Anti-Replay-Mechanismen und adaptiver Sicherheit.
+Sichere IoT-Pipeline zur Überwachung von Lagerbedingungen – vom physischen Sensor über eine geschützte Übertragungsschicht bis zum Echtzeit-Dashboard mit KI-Assistent, der Anomalien für den Bediener interpretiert.
+
+Ein Zonensensor (Raspberry Pi mit BME280) misst Temperatur und Luftfeuchtigkeit in einer Lagerzone, signiert jeden Messwert mit HMAC-SHA256 und überträgt ihn per MQTT an den Leitstand. Dort werden Signatur, Frische und Duplikate geprüft; nur verifizierte Daten erreichen das Dashboard. Anti-Replay-Mechanismen und eine adaptive Sicherheitslogik schützen die Übertragung gegen Manipulation und Wiederholungsangriffe.
+
+> Das Projekt hieß bis Oktober 2026 *CubeSat Security Simulator*. Begriffe und frühere Bezeichnungen: siehe [Glossar](docs/glossar.md).
 
 ---
 
@@ -21,7 +25,7 @@ End-to-end abgesicherte Telemetrie-Pipeline von einem simulierten CubeSat-Satell
 
 ```
 ┌─────────────────────────────────────┐
-│   Satellite (Raspberry Pi / Sim)    │
+│   Zonensensor (Raspberry Pi / Sim)  │
 ├─────────────────────────────────────┤
 │  BME280 Sensor / Simulation         │
 │           ↓                         │
@@ -36,12 +40,12 @@ End-to-end abgesicherte Telemetrie-Pipeline von einem simulierten CubeSat-Satell
 └─────────────────────────────────────┘
            ↓
     ┌─────────────┐
-    │ MQTT Broker │  Topic: cubesat/v1/{sat_id}/telemetry
+    │ MQTT Broker │  Topic: warehouse/v1/{zone_id}/telemetry
     │ (Mosquitto) │  QoS: 1
     └─────────────┘
            ↓
 ┌─────────────────────────────────────┐
-│      Ground Station (macOS)         │
+│          Leitstand (macOS)          │
 ├─────────────────────────────────────┤
 │  MQTT Subscriber                    │
 │           ↓                         │
@@ -79,8 +83,8 @@ Envelope → Dedup → Freshness → Verify → Decision → Routing
 
 **Modulstruktur:**
 - `shared/` — Protokolldefinition und Kryptographie (Single Source of Truth)
-- `satellite/` — Telemetrieerzeugung und MQTT Publishing
-- `ground/` — Empfang, Verifikation und Routing
+- `zone_sensor/` — Telemetrieerzeugung und MQTT Publishing
+- `control_center/` — Empfang, Verifikation und Routing
 
 ---
 
@@ -112,13 +116,13 @@ Envelope → Dedup → Freshness → Verify → Decision → Routing
 
 **2. Deduplication (msg_id Cache)**
 - Jede Nachricht hat eindeutige `msg_id` (UUID v4)
-- Ground hält LRU-Cache der letzten 500 msg_id
+- Der Leitstand hält LRU-Cache der letzten 500 msg_id
 - Duplicate → Drop + Audit-Log
 
 ### Adaptive Security
 
 **Gleitendes Zeitfenster:**
-- Ground Station analysiert Fehler der letzten 60 Sekunden
+- Der Leitstand analysiert Fehler der letzten 60 Sekunden
 - Gewichtete Fehlertypen:
   - `invalid_signature`: 1.0 (kritisch)
   - `malformed_packet`: 0.5 (medium)
@@ -153,12 +157,12 @@ Envelope → Dedup → Freshness → Verify → Decision → Routing
 
 **Trade-off:** Shared Secret muss auf beiden Seiten sicher vorliegen.
 
-### Warum klare Modultrennung (satellite / ground / shared)?
+### Warum klare Modultrennung (zone_sensor / control_center / shared)?
 
 - **Single Source of Truth:** Protokolländerungen erfolgen ausschließlich in `shared/`
 - **Testbarkeit:** Jedes Modul ist isoliert unit-testbar
-- **Keine Abhängigkeitszyklen:** Klare Importrichtung (satellite/ground → shared)
-- **Deployability:** Satellite und Ground können getrennt deployed werden
+- **Keine Abhängigkeitszyklen:** Klare Importrichtung (zone_sensor/control_center → shared)
+- **Deployability:** Zonensensor und Leitstand können getrennt deployed werden
 
 ### Warum Tests auf mehreren Ebenen?
 
@@ -173,7 +177,7 @@ Envelope → Dedup → Freshness → Verify → Decision → Routing
 - **Pub/Sub-Modell:** Entkopplung von Sender und Empfänger
 - **QoS-Support:** Garantierte Zustellung (QoS 1)
 - **Low Overhead:** Effizienter als HTTP für IoT
-- **Broker als Puffer:** Nachrichten werden bei Offline-Ground gepuffert
+- **Broker als Puffer:** Nachrichten werden bei nicht erreichbarem Leitstand gepuffert
 
 **Trade-off:** Zusätzliche Infrastruktur (Broker) erforderlich.
 
@@ -191,8 +195,8 @@ Envelope → Dedup → Freshness → Verify → Decision → Routing
 
 ```bash
 # Repository klonen
-git clone https://github.com/Skydan111/CubeSat-Security-Simulator.git
-cd CubeSat-Security-Simulator
+git clone https://github.com/Skydan111/warehouse-monitor.git
+cd warehouse-monitor
 
 # Virtuelle Umgebung erstellen
 python3.11 -m venv .venv
@@ -204,8 +208,8 @@ pip install -r requirements-dev.txt
 # Projekt-Packages installieren (editable mode)
 # Dependencies werden automatisch aus pyproject.toml gezogen
 pip install -e shared
-pip install -e ground
-pip install -e satellite
+pip install -e control_center
+pip install -e zone_sensor
 
 # Installation verifizieren
 pytest
@@ -219,27 +223,27 @@ docker compose -f docker-compose.mqtt.yml up -d
 
 Broker läuft auf `localhost:1883`.
 
-### Satellite starten
+### Zonensensor starten
 
 ```bash
-./scripts/satellite_start.sh
+./scripts/zone_sensor_start.sh
 ```
 
-Satellite liest BME280 (oder Simulation), signiert Telemetrie und publisht via MQTT.
+Der Zonensensor liest BME280 (oder Simulation), signiert Telemetrie und publisht via MQTT.
 
-### Ground Station starten
+### Leitstand starten
 
 ```bash
-./scripts/ground_start.sh
+./scripts/control_center_start.sh
 ```
 
-Ground subscribt MQTT-Topic, verifiziert Signaturen und routet Daten.
+Der Leitstand abonniert das MQTT-Topic, verifiziert Signaturen und routet Daten.
 
 ### Logs prüfen
 
 ```bash
-tail -f logs/satellite.log
-tail -f logs/ground.log
+tail -f logs/logger.log
+tail -f logs/control_center_subscriber.log
 tail -f logs/security_audit.jsonl
 ```
 
@@ -253,8 +257,8 @@ tail data/processed/*.csv
 ### Stoppen
 
 ```bash
-./scripts/satellite_stop.sh
-./scripts/ground_stop.sh
+./scripts/zone_sensor_stop.sh
+./scripts/control_center_stop.sh
 docker compose -f docker-compose.mqtt.yml down
 ```
 
@@ -265,17 +269,17 @@ docker compose -f docker-compose.mqtt.yml down
 ## Projektstruktur
 
 ```
-CubeSat/
-├── satellite/
-│   ├── src/satellite/
+warehouse-monitor/
+├── zone_sensor/
+│   ├── src/zone_sensor/
 │   │   ├── logger.py              # CSV Logger + HMAC Signing
-│   │   ├── mqtt_publisher.py      # MQTT Publishing
+│   │   ├── mqtt_publisher_from_file.py  # MQTT Publishing
 │   │   └── sensors/
 │   │       └── bme280.py           # BME280 Reader + Simulation
 │   └── pyproject.toml
 │
-├── ground/
-│   ├── src/ground/
+├── control_center/
+│   ├── src/control_center/
 │   │   ├── receiver.py             # Ingestion & Routing Pipeline
 │   │   ├── verify.py               # HMAC Verification
 │   │   ├── mqtt_subscriber.py      # MQTT Subscription
@@ -296,22 +300,22 @@ CubeSat/
 │   └── pyproject.toml
 │
 ├── configs/
-│   ├── satellite.json              # Satellite Config
-│   ├── ground.json                 # Ground Config
+│   ├── zone_sensor.yaml            # Zonensensor-Konfiguration
+│   ├── control_center.json         # Leitstand-Konfiguration
 │   └── security_policy.yaml        # Security Policies (Lockout-Thresholds)
 │
 ├── tests/
 │   ├── unit/
 │   │   ├── shared/                 # Crypto, Protocol Tests
-│   │   ├── ground/                 # Receiver, Security Manager Tests
-│   │   └── satellite/              # Logger, Sensor Tests
+│   │   ├── control_center/         # Receiver, Security Manager Tests
+│   │   └── zone_sensor/            # Logger, Sensor Tests
 │   └── integration/
-│       ├── ground/                 # End-to-End Pipeline Tests
+│       ├── control_center/         # End-to-End Pipeline Tests
 │       └── security/               # Attack Simulation Tests
 │
 ├── scripts/
-│   ├── satellite_start.sh          # Satellite starten
-│   ├── ground_start.sh             # Ground starten
+│   ├── zone_sensor_start.sh        # Zonensensor starten
+│   ├── control_center_start.sh     # Leitstand starten
 │   └── *_status.sh, *_stop.sh      # Status/Stop-Skripte
 │
 ├── examples/
@@ -340,15 +344,15 @@ CubeSat/
 **Unit-Tests (42 Tests)**
 - `shared/crypto/` — HMAC Sign/Verify (6 Tests)
 - `shared/protocol/` — Telemetry & Signed CSV Parsing (14 Tests)
-- `ground/receiver/` — Routing-Pipeline (8 Tests)
-- `ground/security/` — Security Manager, Lockout, Windowing (7 Tests)
-- `satellite/logger/` — CSV Logger, HMAC Integration (3 Tests)
-- `satellite/sensors/` — BME280 Simulation (2 Tests)
+- `control_center/receiver/` — Routing-Pipeline (8 Tests)
+- `control_center/security/` — Security Manager, Lockout, Windowing (7 Tests)
+- `zone_sensor/logger/` — CSV Logger, HMAC Integration (3 Tests)
+- `zone_sensor/sensors/` — BME280 Simulation (2 Tests)
 
 **Integration-Tests (7 Tests)**
 - End-to-End Receiver Pipeline (4 Tests)
 - MQTT End-to-End (1 Test, erfordert Docker)
-- Satellite Logger mit realer Config (1 Test)
+- Zonensensor-Logger mit realer Config (1 Test)
 - Security Attacks (Tampering, Replay) (2 Tests)
 
 **Security-Tests (3 Tests)**
@@ -372,7 +376,7 @@ pytest tests/integration/security/
 pytest -v
 
 # Mit Coverage
-pytest --cov=shared --cov=ground --cov=satellite
+pytest --cov=shared --cov=control_center --cov=zone_sensor
 ```
 
 ### CI/CD-Kompatibilität
@@ -400,7 +404,7 @@ Dieses Projekt ist eine Lern- und Demonstrationsumgebung. Folgende Aspekte sind 
 - Keine Broker-ACLs (Topic-basierte Zugriffskontrolle)
 
 **Skalierbarkeit:**
-- Single-Satellite-Design (keine Multi-Tenancy)
+- Ein-Zonen-Design (keine Multi-Tenancy)
 - In-Memory Dedup-Cache (nicht persistent)
 - Keine Datenbank für Langzeitarchivierung
 
@@ -439,13 +443,15 @@ Siehe [docs/security.md](docs/security.md) für detaillierte Empfehlungen:
 - [Sicherheitsmodell](docs/security.md) — Bedrohungsmodell, Kryptographie, Adaptive Security
 - [Demo & Quickstart](docs/demo.md) — Installation, Demo-Szenarien, Troubleshooting
 - [MQTT Interface](docs/mqtt-interface.md) — Envelope-Schema, Topic-Naming, QoS-Regeln
+- [Glossar](docs/glossar.md) — Verbindliche Begriffe (Zonensensor, Leitstand, Zonen-ID …)
+- [Entwicklungsprotokoll](docs/entwicklungsprotokoll/README.md) — Chronik der Entwicklung seit November 2025
 
 ---
 
 ## Technische Erkenntnisse aus diesem Projekt
 
 Dieses Projekt war für mich eine praktische Übung im systematischen Denken über Softwarearchitektur.
-Ich habe eine Telemetrie-Pipeline mit klar getrennten Komponenten (Satellite, Shared, Ground) entworfen und Datenflüsse bewusst strukturiert.
+Ich habe eine Telemetrie-Pipeline mit klar getrennten Komponenten (Zonensensor, Shared, Leitstand) entworfen und Datenflüsse bewusst strukturiert.
 
 Während der Entwicklung musste ich technische Entscheidungen abwägen, zum Beispiel HMAC vs. asymmetrische Kryptografie oder MQTT vs. HTTP, und deren Auswirkungen verstehen.
 
