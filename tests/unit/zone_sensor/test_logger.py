@@ -40,13 +40,13 @@ def make_cfg(csv_path: Path, interval_sec=1):
 
 def patch_config_open(monkeypatch, cfg_dict):
     """
-    Подменяем builtins.open так, чтобы вызов json.load(open(...satellite.json...))
+    Подменяем builtins.open так, чтобы вызов json.load(open(...zone_sensor.yaml...))
     возвращал наш cfg.
     """
     real_open = builtins.open
 
     def fake_open(path, mode="r", *args, **kwargs):
-        if str(path).endswith("configs/satellite.yaml") and "r" in mode:
+        if str(path).endswith("configs/zone_sensor.yaml") and "r" in mode:
             return io.StringIO(yaml.safe_dump(cfg_dict))
         return real_open(path, mode, *args, **kwargs)
 

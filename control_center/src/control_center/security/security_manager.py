@@ -1,5 +1,5 @@
 """
-SecurityManager – Adaptives Sicherheitsmodul für die Ground Station
+SecurityManager – Adaptives Sicherheitsmodul für den Leitstand
 
 Funktionen:
     • Analyse eingehender Ereignisse (verifiziert / verworfen)

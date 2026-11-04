@@ -20,7 +20,7 @@ def normalize_ts_to_z(line: str) -> str:
     # Normalisiert ts von "...+00:00" nach "...Z" (falls vorhanden).
     parts = line.strip().split(",")
     if len(parts) < 6:
-        return line.strip()  # lassen wir später vom Ground rejecten
+        return line.strip()  # lassen wir später vom Leitstand rejecten
     ts = parts[0]
     if ts.endswith("+00:00"):
         parts[0] = ts.replace("+00:00", "Z")

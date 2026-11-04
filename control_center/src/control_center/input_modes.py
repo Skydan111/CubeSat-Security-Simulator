@@ -18,7 +18,7 @@ def ingest_raw_line(line: str) -> None:
 
 def receive_simulated(n: int = 3, secman: Optional[object] = None, quarantine_path: Optional[Path] = None) -> None:
     """Einfacher Simulator mit absichtlicher Fakesignatur."""
-    print("[GROUND] Simulierter Empfang gestartet …")
+    print("[CONTROL_CENTER] Simulierter Empfang gestartet …")
     for _ in range(n):
         ts = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         line = f"{ts},22.5,45.1,1013.7,sim,FAKESIGN"
@@ -32,7 +32,7 @@ def receive_from_file(
     if not path.exists():
         raise SystemExit(f"[ERR] Datei nicht gefunden: {path}")
     same_as_raw = path.resolve() == RAW_PATH.resolve()
-    print(f"[GROUND] Lese Datei: {path}")
+    print(f"[CONTROL_CENTER] Lese Datei: {path}")
     with path.open("r", encoding="utf-8") as f:
         first = f.readline()
         if first and not is_header(first):
@@ -48,7 +48,7 @@ def receive_from_file(
 
 def receive_from_stdin(secman: Optional[object] = None, quarantine_path: Optional[Path] = None) -> None:
     """Liest Telemetrie über STDIN (Pipe)."""
-    print("[GROUND] Warte auf STDIN (Ctrl+C zum Beenden) …")
+    print("[CONTROL_CENTER] Warte auf STDIN (Ctrl+C zum Beenden) …")
     try:
         for line in sys.stdin:
             if is_header(line):
@@ -56,4 +56,4 @@ def receive_from_stdin(secman: Optional[object] = None, quarantine_path: Optiona
             ingest_raw_line(line)  # RAW für STDIN (keine Duplikate in handle_line)
             handle_line(line, secman=secman, source="stdin", quarantine_path=quarantine_path)
     except KeyboardInterrupt:
-        print("\n[GROUND] Empfang manuell gestoppt.")
+        print("\n[CONTROL_CENTER] Empfang manuell gestoppt.")

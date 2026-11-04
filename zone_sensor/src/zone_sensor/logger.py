@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Satellite Logger – Erfasst Sensordaten (BME280) und schreibt signierte Telemetrie in CSV.
+Zonensensor-Logger – Erfasst Sensordaten (BME280) und schreibt signierte Telemetrie in CSV.
 
-Liest Konfiguration aus configs/satellite.yaml und signiert jeden Datensatz mit HMAC-SHA256.
+Liest Konfiguration aus configs/zone_sensor.yaml und signiert jeden Datensatz mit HMAC-SHA256.
 """
 import csv, time, pathlib, yaml
 import os
@@ -18,7 +18,7 @@ def write_header_if_needed(path):
             w.writerow(["ts","temperature_c","humidity_pct","pressure_hpa","mode","sig"])
 
 def main():
-    CFG = yaml.safe_load(open(HERE.parents[2] / "configs" / "satellite.yaml", "r"))
+    CFG = yaml.safe_load(open(HERE.parents[2] / "configs" / "zone_sensor.yaml", "r"))
 
     CSV_PATH = pathlib.Path(CFG["csv_path"])
     if not CSV_PATH.is_absolute():
@@ -31,7 +31,7 @@ def main():
     if secret_hex is None:
             raise RuntimeError("SENSOR_SECRET_HEX nicht gesetzt. Bitte Umgebungsvariable setzen.")
 
-    print(f"[OBC] logging to {CSV_PATH} every {interval}s ... Ctrl+C to stop")
+    print(f"[ZONE_SENSOR] logging to {CSV_PATH} every {interval}s ... Ctrl+C to stop")
     while True:
         telemetry_unsigned = sensor.read()
 
@@ -42,7 +42,7 @@ def main():
             writer = csv.writer(f)
             writer.writerow(row)
 
-        print("[OBC]", ",".join(row[:5]), "->", row[5][:8])
+        print("[ZONE_SENSOR]", ",".join(row[:5]), "->", row[5][:8])
         time.sleep(interval)
 
 if __name__ == "__main__":

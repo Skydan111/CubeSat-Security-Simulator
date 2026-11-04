@@ -22,9 +22,9 @@ class SensorStub:
         )
 
 
-def test_logger_uses_real_satellite_json_config(monkeypatch, tmp_path):
+def test_logger_uses_real_zone_sensor_config(monkeypatch, tmp_path):
     # Строим временную структуру так, чтобы HERE.parents[2] == tmp_path
-    # Нужно: tmp_path/configs/satellite.json
+    # Нужно: tmp_path/configs/zone_sensor.yaml
     # Значит HERE должен быть: tmp_path/x/y/z  (тогда parents[2] == tmp_path)
     fake_here = tmp_path / "x" / "y" / "z"
     fake_here.mkdir(parents=True, exist_ok=True)
@@ -37,7 +37,7 @@ def test_logger_uses_real_satellite_json_config(monkeypatch, tmp_path):
         "csv_path": "logs/telemetry.csv",
         "interval_sec": 60,
     }
-    (configs_dir / "satellite.yaml").write_text(yaml.safe_dump(cfg),)
+    (configs_dir / "zone_sensor.yaml").write_text(yaml.safe_dump(cfg),)
 
     # Подменяем HERE в модуле logger
     monkeypatch.setattr(sensor_logger, "HERE", fake_here)

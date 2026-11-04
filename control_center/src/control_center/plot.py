@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Mission View — Bodenstations-Telemetrie-Monitor (robust)
+Live-Ansicht — Telemetrie-Monitor des Leitstands (robust)
 
 Funktionen:
 - Liest Telemetrie aus CSV
@@ -120,7 +120,7 @@ def _draw_axes(df: pd.DataFrame, axes) -> None:
 
 def draw_once(
     df: pd.DataFrame,
-    title: str = "CubeSat Telemetrie – Bodenstationsansicht",
+    title: str = "Lagerklima – Leitstandsansicht",
     save_path: pathlib.Path | None = None
 ):
     """Zeichnet eine statische Telemetrie-Grafik (einmalige Ansicht)."""
@@ -149,7 +149,7 @@ def live_loop(
     """
     plt.ion()
     fig, axes = plt.subplots(3, 1, sharex=True, figsize=(9, 7))
-    fig.suptitle("CubeSat Telemetrie – LIVE", fontsize=14)
+    fig.suptitle("Lagerklima – LIVE", fontsize=14)
 
     last_mtime = None
 
@@ -194,15 +194,15 @@ def live_loop(
             plt.pause(interval_sec)
 
     except KeyboardInterrupt:
-        print("\n[GROUND] Live-Ansicht vom Benutzer gestoppt.")
+        print("\n[CONTROL_CENTER] Live-Ansicht vom Benutzer gestoppt.")
     finally:
         plt.ioff()
         plt.show()
 
 
 def main():
-    """CLI-Einstiegspunkt für den Bodenstations-Monitor."""
-    parser = argparse.ArgumentParser(description="Bodenstations-Telemetrie-Monitor")
+    """CLI-Einstiegspunkt für den Telemetrie-Monitor des Leitstands."""
+    parser = argparse.ArgumentParser(description="Telemetrie-Monitor des Leitstands")
     parser.add_argument("--csv", type=pathlib.Path, default=DEFAULT_CSV, help="Pfad zur Telemetrie-CSV")
     parser.add_argument("--once", action="store_true", help="einmalige Darstellung und beenden")
     parser.add_argument("--interval", type=float, default=2.0, help="Aktualisierungsintervall (Sekunden) im Live-Modus")
@@ -212,7 +212,7 @@ def main():
 
     df = load_df(args.csv)
     if df.empty and args.once:
-        raise SystemExit("[ERR] Telemetrie-Datei ist leer. Bitte OBC/Receiver zuerst starten.")
+        raise SystemExit("[ERR] Telemetrie-Datei ist leer. Bitte Zonensensor/Receiver zuerst starten.")
 
     if args.once:
         draw_once(df, save_path=args.save)

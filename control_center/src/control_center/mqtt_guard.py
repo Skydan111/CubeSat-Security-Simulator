@@ -36,7 +36,7 @@ class MqttMessageGuard:
         self._dedup_by_zone: Dict[str, DedupLRU] = {}
 
     def is_duplicate(self, zone_id: str, msg_id: str) -> bool:
-        # Dedup pro Satellite-ID.
+        # Dedup pro Zonen-ID.
         cache = self._dedup_by_zone.get(zone_id)
         if cache is None:
             cache = DedupLRU(self._cfg.dedup_size)

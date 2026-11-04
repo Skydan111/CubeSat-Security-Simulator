@@ -1,7 +1,7 @@
 services:
   mqtt-broker:
     image: eclipse-mosquitto:2.0.18
-    container_name: cubesat-mqtt-broker
+    container_name: warehouse-mqtt-broker
     ports:
       - "1883:1883"
     volumes:

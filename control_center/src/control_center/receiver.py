@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Ground Receiver: Einstiegspunkt – CSV-Telemetrie mit Adaptiver Sicherheit.
+Leitstand-Receiver: Einstiegspunkt – CSV-Telemetrie mit Adaptiver Sicherheit.
 
 Pipeline-Stufen:
   RAW (Eingang) → VERIFY (HMAC) → PROCESSED / REJECTED / QUARANTINE
@@ -27,7 +27,7 @@ SecurityManager = try_import_secman()
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Ground Receiver – CSV-Telemetrie mit Adaptiver Sicherheit")
+    parser = argparse.ArgumentParser(description="Leitstand-Receiver – CSV-Telemetrie mit Adaptiver Sicherheit")
     parser.add_argument("--simulate", action="store_true", help="Simulierter Empfang")
     parser.add_argument("--simulate-count", type=int, default=3)
     parser.add_argument("--file", type=Path, help="CSV-Datei einlesen")
@@ -47,7 +47,7 @@ def main() -> int:
             elif args.stdin:
                 receive_from_stdin(secman=secman, quarantine_path=args.quarantine_csv)
             else:
-                print("[GROUND] Receiver bereit. --simulate | --file <pfad> | --stdin")
+                print("[CONTROL_CENTER] Receiver bereit. --simulate | --file <pfad> | --stdin")
         return 0
     except Exception as e:
         print(f"[SECURITY] Fehler ({e})")
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except KeyboardInterrupt:
-        print("\n[GROUND] Abbruch durch Benutzer.")
+        print("\n[CONTROL_CENTER] Abbruch durch Benutzer.")
         sys.exit(130)
     except Exception as e:
         print(f"[FATAL] Unhandled error: {e}", file=sys.stderr)

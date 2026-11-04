@@ -3,7 +3,7 @@
 verify.py – HMAC-Signaturprüfung für Telemetriedaten
 
 Funktionen:
- - Lädt geheimen Schlüssel aus config/ground.json oder Umgebungsvariable
+ - Lädt geheimen Schlüssel aus configs/control_center.json oder Umgebungsvariable
  - Verifiziert HMAC-SHA256-Signaturen
  - Wird vom Receiver-Modul verwendet
 """
@@ -14,13 +14,13 @@ from shared.crypto.hmac_sha256 import verify as hmac_verify
 
 # --- Neue Sektion: Laden der Konfiguration ---
 from control_center.config.paths import ROOT_DIR
-CFG_PATH = ROOT_DIR / "configs" / "ground.json"
+CFG_PATH = ROOT_DIR / "configs" / "control_center.json"
 
 def _load_secret_hex() -> str:
     """
     Bezieht den geheimen Schlüssel (Hex) aus:
     1) Umgebungsvariable HMAC_SECRET_HEX (falls gesetzt),
-    2) sonst aus config/ground.json ("hmac_secret").
+    2) sonst aus configs/control_center.json ("hmac_secret").
     """
     env = os.getenv("HMAC_SECRET_HEX")
     if env:
@@ -49,7 +49,7 @@ def verify(secret_hex: str, payload_bytes: bytes, mac_hex: str) -> bool:
 
 # --- Zusatzfunktion: Automatische Variante ---
 def verify_with_config(payload_bytes: bytes, mac_hex: str) -> bool:
-    """Lädt den geheimen Schlüssel automatisch aus config/ground.json."""
+    """Lädt den geheimen Schlüssel automatisch aus configs/control_center.json."""
     secret = _load_secret_hex()
     return verify(secret, payload_bytes, mac_hex)
 
@@ -58,7 +58,7 @@ def verify_csv_line_with_config(line: str) -> bool:
     Verifiziert eine Telemetriezeile im Format:
     ts,temperature_c,humidity_pct,pressure_hpa,mode,sig
 
-    Secret wird aus HMAC_SECRET_HEX (env) oder ground/config/ground.json geladen.
+    Secret wird aus HMAC_SECRET_HEX (env) oder configs/control_center.json geladen.
     """
     secret = _load_secret_hex()
     return verify_signed_line(line, secret)

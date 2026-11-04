@@ -13,7 +13,7 @@ from shared.protocol.signed_csv import format_signed_line
 from shared.protocol.telemetry_csv import TelemetryUnsigned
 
 
-ROOT = Path(__file__).resolve().parents[3]  # .../CubeSat
+ROOT = Path(__file__).resolve().parents[3]  # Projektwurzel
 COMPOSE_FILE = ROOT / "docker-compose.mqtt.yml"
 
 RAW_FILE = ROOT / "data" / "raw" / "telemetry.csv"

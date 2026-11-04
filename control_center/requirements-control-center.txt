@@ -1,4 +1,4 @@
-# Ground Station Abhängigkeiten
+# Leitstand-Abhängigkeiten
 paho-mqtt==1.6.1
 pandas==2.1.4
 matplotlib==3.8.2

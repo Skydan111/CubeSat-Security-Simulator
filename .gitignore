@@ -17,7 +17,7 @@ __pycache__/
 env/
 .venv/
 
-# Missionsdaten (nicht versionieren)
+# Messdaten (nicht versionieren)
 data/raw/
 data/processed/
 data/reports/
@@ -35,14 +35,6 @@ logs/
 
 # Lokale Medien oder Hardware-Bilder
 docs/hardware/
-
-# Bodenstation (Ground)
-# Enthält geheime Schlüssel / lokale Konfigs
-cube/ground/config/*.json
-
-# Bordcomputer (OBC – Raspberry Pi)
-# Enthält Missionskonfigs und Schlüssel
-obc/config/*.json
 
 # build / packaging artifacts
 *.egg-info/
