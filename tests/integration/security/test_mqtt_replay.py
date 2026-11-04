@@ -54,7 +54,7 @@ def test_mqtt_replay_drop_duplicate_and_log() -> None:
     env["MAX_SKEW_SECONDS"] = "120"
 
     sub = subprocess.Popen(
-        ["python", "-u", "ground/src/ground/mqtt_subscriber.py"],
+        ["python", "-u", "control_center/src/control_center/mqtt_subscriber.py"],
         cwd=str(ROOT),
         env=env,
         stdout=subprocess.PIPE,

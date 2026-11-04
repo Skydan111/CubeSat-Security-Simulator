@@ -53,7 +53,7 @@ def test_mqtt_tampering_drop_and_log() -> None:
     env["SECURITY_POLICY_PATH"] = "configs/security_policy.yaml"
 
     sub = subprocess.Popen(
-        ["python", "-u", "ground/src/ground/mqtt_subscriber.py"],
+        ["python", "-u", "control_center/src/control_center/mqtt_subscriber.py"],
         cwd=str(ROOT),
         env=env,
         stdout=subprocess.PIPE,

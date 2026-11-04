@@ -2,7 +2,7 @@ import csv
 from collections import deque
 from typing import Iterator
 
-from ground.config.paths import CSV_HEADER, PROC_PATH
+from control_center.config.paths import CSV_HEADER, PROC_PATH
 from dashboard.backend.models import TelemetryPacket
 
 FIELDS = CSV_HEADER.split(",")
