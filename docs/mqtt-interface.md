@@ -1,16 +1,16 @@
 # MQTT Interface Contract (v1)
 
 ## Ziel
-Implementierung eines realen Kommunikationskanals zwischen Satellite (On-Board Computer) und Ground Station
-über MQTT, ohne Änderungen an der bestehenden Architektur (satellite/ground/shared).
+Implementierung eines realen Kommunikationskanals zwischen Zonensensor (Sensorrechner) und Leitstand
+über MQTT, ohne Änderungen an der bestehenden Architektur (zone_sensor/control_center/shared).
 
 Dieses Dokument definiert Topics, Message Envelope, QoS-Regeln sowie Anti-Replay/Dedup-Verhalten.
 
 ---
 
 ## Begriffe
-- Satellite: On-Board Computer Simulator (Raspberry Pi).
-- Ground: Ground Station / Receiver Pipeline.
+- Zonensensor: Sensorrechner (Raspberry Pi).
+- Leitstand: Empfangs- und Verifikations-Pipeline (macOS).
 - Broker: MQTT Broker (z. B. Mosquitto).
 - Signed Payload: vorhandenes Format aus shared/ (HMAC-SHA256 Signatur/Verifikation).
 
@@ -19,18 +19,18 @@ Dieses Dokument definiert Topics, Message Envelope, QoS-Regeln sowie Anti-Replay
 ## MQTT Topics (v1)
 
 ### Basispräfix
-cubesat/v1/<sat_id>/...
+warehouse/v1/<zone_id>/...
 
 ### Uplink: Telemetry
-- Topic: cubesat/v1/<sat_id>/telemetry
-- Richtung: Satellite → Ground
+- Topic: warehouse/v1/<zone_id>/telemetry
+- Richtung: Zonensensor → Leitstand
 
 ### Downlink: Command (später)
-- Topic: cubesat/v1/<sat_id>/command
-- Richtung: Ground → Satellite
+- Topic: warehouse/v1/<zone_id>/command
+- Richtung: Leitstand → Zonensensor
 
 ### Status / Presence (optional)
-- Topic: cubesat/v1/<sat_id>/status
+- Topic: warehouse/v1/<zone_id>/status
 
 ---
 
@@ -61,7 +61,7 @@ wird als Base64 in payload_b64 transportiert.
 ### Envelope Schema (v1)
 Felder:
 - v (string): Envelope-Version. Muss "1" sein.
-- sat_id (string): Satellite ID.
+- zone_id (string): Zonen-ID.
 - msg_type (string): "telemetry" (später auch `"command"`).
 - msg_id (string): Eindeutige Message-ID (UUID v4 empfohlen).
 - ts_utc (string): UTC Timestamp (ISO-8601, z. B. `2026-01-06T15:20:00Z`).
@@ -72,7 +72,7 @@ Felder:
 ```json
 {
   "v": "1",
-  "sat_id": "SAT-001",
+  "zone_id": "ZONE-01",
   "msg_type": "telemetry",
   "msg_id": "b7d3b4fb-1f7a-4c4a-9b22-2d1c6f2a9e8a",
   "ts_utc": "2026-01-06T15:20:00Z",
@@ -83,9 +83,9 @@ Felder:
 
 ## Sicherheitsregeln (Application Layer)
 
-### Verifikation (Ground)
+### Verifikation (Leitstand)
 
-Reihenfolge der Verarbeitung in Ground:
+Reihenfolge der Verarbeitung im Leitstand:
 
 1. Envelope JSON validieren
    (Pflichtfelder vorhanden, `v == "1"`).
@@ -107,7 +107,7 @@ Reihenfolge der Verarbeitung in Ground:
 
 ### Anti-Replay / Dedup
 
-- Ground hält pro sat_id einen LRU-Cache der letzten N msg_id
+- Der Leitstand hält pro zone_id einen LRU-Cache der letzten N msg_id
   (z. B. `N = 500`).
 
 - Wenn msg_id bereits vorhanden ist →
@@ -135,8 +135,8 @@ Reihenfolge der Verarbeitung in Ground:
 
 ## Definition of Done (Phase 4 – Minimal)
 
-1. Satellite publiziert Telemetry via MQTT (QoS 1).
-2. Ground empfängt Nachrichten, dedupliziert sie,
+1. Der Zonensensor publiziert Telemetry via MQTT (QoS 1).
+2. Der Leitstand empfängt Nachrichten, dedupliziert sie,
    prüft Freshness und verifiziert die Signatur.
 3. Integration Test startet einen lokalen Broker
    und prüft 50–100 Nachrichten End-to-End.

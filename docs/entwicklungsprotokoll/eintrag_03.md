@@ -1,4 +1,4 @@
-# 🛰️ Mission Report #3 – Phase: Ground Telemetry Visualization
+# Entwicklungsprotokoll #3 – Phase: Ground Telemetry Visualization
 
 **Datum:** 2025-11-06
 **Phase:** Ground Station Development

@@ -1,4 +1,4 @@
-# CLAUDE.md — CubeSat Security Simulator
+# CLAUDE.md — Warehouse Monitor
 
 This file defines non-negotiable working rules for Claude Code.
 If any instruction conflicts with this file → STOP and ask.
@@ -20,15 +20,15 @@ If any instruction conflicts with this file → STOP and ask.
 ### Preferred Run Method
 Use provided scripts. Do NOT invent alternatives.
 
-Satellite:
-- Start: `./scripts/satellite_start.sh`
-- Status: `./scripts/satellite_status.sh`
-- Stop: `./scripts/satellite_stop.sh`
+Zone sensor (Raspberry Pi):
+- Start: `./scripts/zone_sensor_start.sh`
+- Status: `./scripts/zone_sensor_status.sh`
+- Stop: `./scripts/zone_sensor_stop.sh`
 
-Ground:
-- Start: `./scripts/ground_start.sh`
-- Status: `./scripts/ground_status.sh`
-- Stop: `./scripts/ground_stop.sh`
+Control center (Leitstand):
+- Start: `./scripts/control_center_start.sh`
+- Status: `./scripts/control_center_status.sh`
+- Stop: `./scripts/control_center_stop.sh`
 
 ---
 
@@ -58,8 +58,8 @@ Security constraints override convenience.
 ## 4. Architectural Boundaries
 
 - `shared/` → source of truth for protocol and crypto formats.
-- `satellite/` → telemetry generation + publishing ONLY.
-- `ground/` → verification + routing + analysis ONLY.
+- `zone_sensor/` → telemetry generation + publishing ONLY.
+- `control_center/` → verification + routing + analysis ONLY.
 - DO NOT mix responsibilities across modules.
 
 If a change impacts protocol, crypto, or routing semantics → update design docs or explain why not.
@@ -68,7 +68,7 @@ If a change impacts protocol, crypto, or routing semantics → update design doc
 
 ## 5. Dependency Discipline
 
-- DO NOT mix dependencies between `satellite/`, `ground/`, `shared/`.
+- DO NOT mix dependencies between `zone_sensor/`, `control_center/`, `shared/`.
 - DO NOT restructure packaging (`pyproject.toml`) unless explicitly requested.
 - DO NOT add dependencies unless strictly required.
   If proposing a new dependency:

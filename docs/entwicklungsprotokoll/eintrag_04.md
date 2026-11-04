@@ -1,4 +1,4 @@
-# 🛰️ Mission Report #4 – OBC Telemetry & Security Module
+# Entwicklungsprotokoll #4 – OBC Telemetry & Security Module
 
 **Datum:** 2025-11-06
 **Phase:** On-Board Computer (OBC) Deployment

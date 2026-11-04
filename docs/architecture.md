@@ -2,12 +2,12 @@
 
 ## Überblick
 
-Das CubeSat-Telemetriesystem ist eine End-to-End-Pipeline zur sicheren Übertragung von Sensordaten vom Satelliten (Raspberry Pi) zur Bodenstation (Ground).
+Der Warehouse Monitor ist eine End-to-End-Pipeline zur sicheren Übertragung von Sensordaten vom Zonensensor (Raspberry Pi) zum Leitstand.
 
 Die Architektur folgt einem dreischichtigen Modell:
-- **Satellite** — Sensordatenerfassung und kryptographische Signierung
+- **Zonensensor** — Sensordatenerfassung und kryptographische Signierung
 - **Transport Layer** — MQTT-basierte Nachrichtenübertragung mit Envelope-Protokoll
-- **Ground Station** — Empfang, Verifikation und Routing
+- **Leitstand** — Empfang, Verifikation und Routing
 
 Zentrale Designprinzipien:
 - Klare Modultrennung (keine Vermischung von Verantwortlichkeiten)
@@ -21,7 +21,7 @@ Zentrale Designprinzipien:
 
 ```
 ┌─────────────────────────────────────┐
-│      Satellite (Raspberry Pi)       │
+│      Zonensensor (Raspberry Pi)     │
 ├─────────────────────────────────────┤
 │  BME280 Sensor / Simulation         │
 │           ↓                         │
@@ -39,11 +39,11 @@ Zentrale Designprinzipien:
 └─────────────────────────────────────┘
            ↓
     MQTT Broker (Mosquitto)
-    Topic: cubesat/v1/SAT-001/telemetry
+    Topic: warehouse/v1/ZONE-01/telemetry
     QoS: 1
            ↓
 ┌─────────────────────────────────────┐
-│       Ground Station (macOS)        │
+│          Leitstand (macOS)          │
 ├─────────────────────────────────────┤
 │  MQTT Subscriber                    │
 │           ↓                         │
@@ -102,12 +102,12 @@ shared/src/shared/
 
 ---
 
-### `satellite/` — Telemetrieerzeugung
+### `zone_sensor/` — Telemetrieerzeugung
 
 On-Board Computer Logik (Raspberry Pi).
 
 ```
-satellite/src/satellite/
+zone_sensor/src/zone_sensor/
 ├── sensors/
 │   └── bme280.py            # BME280 Reader + Simulation
 ├── logger.py                # CSV Logger mit HMAC-Signing
@@ -121,18 +121,18 @@ satellite/src/satellite/
 - Envelope erstellen und via MQTT publizieren
 
 **Abhängigkeiten:**
-- `cubesat-shared` (protokoll + crypto)
+- `warehouse-shared` (protokoll + crypto)
 - `paho-mqtt` (MQTT Client)
 - `adafruit-circuitpython-bme280` (BME280 Sensor)
 
 ---
 
-### `ground/` — Empfang & Verifikation
+### `control_center/` — Empfang & Verifikation
 
-Bodenstation (macOS / Linux).
+Leitstand (macOS / Linux).
 
 ```
-ground/src/ground/
+control_center/src/control_center/
 ├── mqtt_subscriber.py       # MQTT Subscription
 ├── receiver.py              # Ingestion & Routing Pipeline
 ├── verify.py                # HMAC Verification
@@ -149,7 +149,7 @@ ground/src/ground/
 - Routing: processed / rejected / quarantine
 
 **Abhängigkeiten:**
-- `cubesat-shared` (protokoll + crypto)
+- `warehouse-shared` (protokoll + crypto)
 - `paho-mqtt` (MQTT Client)
 - `pandas` (optional, für Analyse)
 - `matplotlib` (optional, für Visualisierung)
@@ -166,7 +166,7 @@ Der MQTT-Layer nutzt ein JSON-Envelope, um Metadaten (Transport-Layer) vom eigen
 ```json
 {
   "v": "1",
-  "sat_id": "SAT-001",
+  "zone_id": "ZONE-01",
   "msg_type": "telemetry",
   "msg_id": "b7d3b4fb-1f7a-4c4a-9b22-2d1c6f2a9e8a",
   "ts_utc": "2026-02-25T15:20:00Z",
@@ -177,7 +177,7 @@ Der MQTT-Layer nutzt ein JSON-Envelope, um Metadaten (Transport-Layer) vom eigen
 
 **Felder:**
 - `v` (string) — Envelope-Version, muss "1" sein
-- `sat_id` (string) — Satellite ID (z.B. "SAT-001")
+- `zone_id` (string) — Zonen-ID (z.B. "ZONE-01")
 - `msg_type` (string) — Nachrichtentyp ("telemetry")
 - `msg_id` (string) — Eindeutige Message-ID (UUID v4)
 - `ts_utc` (string) — UTC Timestamp (ISO-8601)
@@ -198,7 +198,7 @@ Signatur (`sig`) ist HMAC-SHA256 über die ersten 5 Felder.
 
 ## Datenfluss
 
-### Satellite → Ground (Normale Telemetrie)
+### Zonensensor → Leitstand (normale Telemetrie)
 
 1. **Sensor lesen**
    - BME280 oder Simulation
@@ -218,13 +218,13 @@ Signatur (`sig`) ist HMAC-SHA256 über die ersten 5 Felder.
    - JSON Envelope mit Metadaten (msg_id, ts_utc, etc.)
 
 6. **MQTT Publish**
-   - Topic: `cubesat/v1/{sat_id}/telemetry`
+   - Topic: `warehouse/v1/{zone_id}/telemetry`
    - QoS: 1
    - Payload: JSON Envelope
 
 ---
 
-### Ground: Empfang & Verifikation
+### Leitstand: Empfang & Verifikation
 
 1. **MQTT Subscribe**
    - Empfang der JSON-Nachricht
@@ -265,8 +265,8 @@ Signatur (`sig`) ist HMAC-SHA256 über die ersten 5 Felder.
 
 Keine Vermischung von:
 - Protokolldefinition (shared/)
-- Telemetrieerzeugung (satellite/)
-- Verifikation und Routing (ground/)
+- Telemetrieerzeugung (zone_sensor/)
+- Verifikation und Routing (control_center/)
 
 Änderungen am Protokoll erfolgen **ausschließlich** in `shared/`.
 
@@ -278,14 +278,14 @@ Keine Vermischung von:
 - Envelope-Schema
 - Topic-Naming
 
-Satellite und Ground importieren aus `shared/`, definieren aber nichts selbst.
+Zonensensor und Leitstand importieren aus `shared/`, definieren aber nichts selbst.
 
 ### 3. Testbarkeit
 
 Alle Module sind unit-testbar:
 - `shared/` — keine I/O, rein funktional
-- `satellite/` — Sensor-Simulation verfügbar
-- `ground/` — Verification isoliert testbar
+- `zone_sensor/` — Sensor-Simulation verfügbar
+- `control_center/` — Verification isoliert testbar
 
 Integrationstests prüfen End-to-End-Fluss.
 
@@ -294,8 +294,8 @@ Integrationstests prüfen End-to-End-Fluss.
 Entwicklung nutzt:
 ```bash
 pip install -e shared
-pip install -e ground
-pip install -e satellite
+pip install -e control_center
+pip install -e zone_sensor
 ```
 
 Keine manuellen PYTHONPATH-Manipulationen nötig.
@@ -330,15 +330,15 @@ Keine Hardcoding von Policies im Code.
 
 ### Lokales Setup (Demo)
 
-- Satellite: Python-Skript auf Raspberry Pi
+- Zonensensor: Python-Skript auf Raspberry Pi
 - MQTT Broker: Docker auf macOS
-- Ground: Python-Skript auf macOS
+- Leitstand: Python-Skript auf macOS
 
 ### Produktionsnahes Setup (geplant)
 
-- Satellite: Systemd-Service auf Raspberry Pi
+- Zonensensor: Systemd-Service auf Raspberry Pi
 - MQTT Broker: Cloud (z.B. AWS IoT Core)
-- Ground: Server mit TLS/mTLS
+- Leitstand: Server mit TLS/mTLS
 - Secret Management: Vault / KMS
 
 ---
@@ -347,9 +347,9 @@ Keine Hardcoding von Policies im Code.
 
 ### Geplante Erweiterungen
 
-- **Command Downlink** — Ground → Satellite Befehle
+- **Befehlskanal** — Befehle vom Leitstand an die Zonensensoren
 - **TLS/mTLS** — Verschlüsselte MQTT-Verbindung
-- **Multi-Satellite** — Mehrere Satelliten parallel
+- **Multi-Zonen-Betrieb** — mehrere Zonensensoren parallel
 - **Time-Series DB** — InfluxDB für Langzeitarchivierung
 - **Dashboarding** — Grafana für Echtzeit-Monitoring
 

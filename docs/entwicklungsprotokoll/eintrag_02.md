@@ -1,4 +1,4 @@
-# 🛰️ Mission Report #2 – Phase: System Boot & Telemetry Simulation
+# Entwicklungsprotokoll #2 – Phase: System Boot & Telemetry Simulation
 
 **Datum:** 2025-11-04
 **Phase:** System Boot & Telemetry Simulation

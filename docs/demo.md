@@ -17,8 +17,8 @@ Optional:
 ### 1. Repository klonen
 
 ```bash
-git clone https://github.com/Skydan111/CubeSat.git
-cd CubeSat
+git clone https://github.com/Skydan111/warehouse-monitor.git
+cd warehouse-monitor
 ```
 
 ### 2. Virtuelle Umgebung erstellen
@@ -44,14 +44,14 @@ pip install -r requirements-dev.txt
 
 ```bash
 pip install -e shared
-pip install -e ground
-pip install -e satellite
+pip install -e control_center
+pip install -e zone_sensor
 ```
 
 **Was passiert:**
 - `shared` wird installiert (keine externen Dependencies)
-- `ground` wird installiert inkl. `pandas`, `matplotlib`, `paho-mqtt`, `pyyaml`
-- `satellite` wird installiert inkl. `paho-mqtt`, `adafruit-circuitpython-bme280`
+- `control_center` wird installiert inkl. `pandas`, `matplotlib`, `paho-mqtt`, `pyyaml`
+- `zone_sensor` wird installiert inkl. `paho-mqtt`, `adafruit-circuitpython-bme280`
 
 ### 5. Installation verifizieren
 
@@ -92,14 +92,14 @@ docker compose -f docker-compose.mqtt.yml down
 
 ---
 
-## Satellite starten
+## Zonensensor starten
 
-Der Satellite simuliert einen On-Board Computer (Raspberry Pi), der Sensordaten erfasst, signiert und via MQTT publiziert.
+Der Zonensensor läuft auf dem Sensorrechner (Raspberry Pi), der Sensordaten erfasst, signiert und via MQTT publiziert.
 
 ### Start
 
 ```bash
-./scripts/satellite_start.sh
+./scripts/zone_sensor_start.sh
 ```
 
 **Was passiert:**
@@ -107,47 +107,47 @@ Der Satellite simuliert einen On-Board Computer (Raspberry Pi), der Sensordaten 
 2. Telemetriedaten werden formatiert: `ts,temp,hum,press,mode`
 3. HMAC-SHA256 Signatur wird erzeugt
 4. Daten werden als JSON Envelope via MQTT publiziert
-   - Topic: `cubesat/v1/SAT-001/telemetry`
+   - Topic: `warehouse/v1/ZONE-01/telemetry`
    - QoS: 1
 
 ### Logs prüfen
 
 ```bash
-tail -f logs/satellite.log
+tail -f logs/logger.log
 ```
 
 **Beispiel-Log:**
 ```
 2026-02-25 15:20:05 [INFO] BME280 Sensor initialized (simulation mode)
-2026-02-25 15:20:05 [INFO] Published telemetry to cubesat/v1/SAT-001/telemetry
+2026-02-25 15:20:05 [INFO] Published telemetry to warehouse/v1/ZONE-01/telemetry
 ```
 
 ### Status prüfen
 
 ```bash
-./scripts/satellite_status.sh
+./scripts/zone_sensor_status.sh
 ```
 
 ### Stoppen
 
 ```bash
-./scripts/satellite_stop.sh
+./scripts/zone_sensor_stop.sh
 ```
 
 ---
 
-## Ground Station starten
+## Leitstand starten
 
-Die Ground Station empfängt MQTT-Nachrichten, verifiziert Signaturen und routet Daten basierend auf Validierungsergebnis.
+Der Leitstand empfängt MQTT-Nachrichten, verifiziert Signaturen und routet Daten basierend auf Validierungsergebnis.
 
 ### Start
 
 ```bash
-./scripts/ground_start.sh
+./scripts/control_center_start.sh
 ```
 
 **Was passiert:**
-1. MQTT Topic wird subscribed: `cubesat/v1/SAT-001/telemetry`
+1. MQTT Topic wird subscribed: `warehouse/v1/ZONE-01/telemetry`
 2. Empfangene Nachrichten werden validiert:
    - Envelope-Schema prüfen
    - Deduplication (msg_id)
@@ -162,12 +162,12 @@ Die Ground Station empfängt MQTT-Nachrichten, verifiziert Signaturen und routet
 ### Logs prüfen
 
 ```bash
-tail -f logs/ground.log
+tail -f logs/control_center_subscriber.log
 ```
 
 **Beispiel-Log:**
 ```
-2026-02-25 15:20:06 [INFO] Received message on cubesat/v1/SAT-001/telemetry
+2026-02-25 15:20:06 [INFO] Received message on warehouse/v1/ZONE-01/telemetry
 2026-02-25 15:20:06 [INFO] HMAC verification: PASS
 2026-02-25 15:20:06 [INFO] Routed to data/processed/telemetry_20260225.csv
 ```
@@ -184,20 +184,20 @@ tail -f logs/security_audit.jsonl | jq
   "ts": "2026-02-25T15:20:06Z",
   "event": "signature_verified",
   "msg_id": "a1b2c3d4-...",
-  "sat_id": "SAT-001"
+  "zone_id": "ZONE-01"
 }
 ```
 
 ### Status prüfen
 
 ```bash
-./scripts/ground_status.sh
+./scripts/control_center_status.sh
 ```
 
 ### Stoppen
 
 ```bash
-./scripts/ground_stop.sh
+./scripts/control_center_stop.sh
 ```
 
 ---
@@ -266,7 +266,7 @@ pytest tests/unit/
 - Crypto (HMAC sign/verify)
 - Protocol (CSV parsing)
 - Security Manager (Lockout, Windowing)
-- Satellite Logger
+- Zonensensor-Logger
 - Sensor Simulation
 
 ### Nur Integration-Tests
@@ -277,7 +277,7 @@ pytest tests/integration/
 
 **Abdeckung:**
 - End-to-End Receiver Pipeline
-- Satellite Logger mit realer Config
+- Zonensensor-Logger mit realer Config
 - Security Attacks (Tampering)
 
 ### Nur Security-Tests
@@ -301,7 +301,7 @@ pytest -v
 
 ```bash
 pip install pytest-cov
-pytest --cov=shared --cov=ground --cov=satellite
+pytest --cov=shared --cov=control_center --cov=zone_sensor
 ```
 
 ---
@@ -319,14 +319,14 @@ pytest --cov=shared --cov=ground --cov=satellite
    docker compose -f docker-compose.mqtt.yml up -d
    ```
 
-2. Ground Station starten
+2. Leitstand starten
    ```bash
-   ./scripts/ground_start.sh
+   ./scripts/control_center_start.sh
    ```
 
-3. Satellite starten
+3. Zonensensor starten
    ```bash
-   ./scripts/satellite_start.sh
+   ./scripts/zone_sensor_start.sh
    ```
 
 4. Warten (ca. 30 Sekunden)
@@ -353,11 +353,11 @@ pytest --cov=shared --cov=ground --cov=satellite
 
 **Schritte:**
 
-1. Ground Station läuft (siehe Szenario 1)
+1. Leitstand läuft (siehe Szenario 1)
 
 2. Manipulierte Datei manuell verarbeiten
    ```bash
-   python -m ground.receiver --file examples/telemetry_bad_sig.csv
+   python -m control_center.receiver --file examples/telemetry_bad_sig.csv
    ```
 
 3. Ergebnis prüfen
@@ -369,7 +369,7 @@ pytest --cov=shared --cov=ground --cov=satellite
 **Erwartetes Ergebnis:**
 - Zeile landet in `data/rejected/`
 - Security Audit Log enthält `invalid_signature` Event
-- Ground Log: `[WARNING] Invalid signature detected`
+- Leitstand-Log: `[WARNING] Invalid signature detected`
 
 ---
 
@@ -379,12 +379,12 @@ pytest --cov=shared --cov=ground --cov=satellite
 
 **Schritte:**
 
-1. Ground Station läuft
+1. Leitstand läuft
 
 2. 5 ungültige Nachrichten nacheinander senden (simuliert)
    ```bash
    for i in {1..5}; do
-     python -m ground.receiver --file examples/telemetry_bad_sig.csv
+     python -m control_center.receiver --file examples/telemetry_bad_sig.csv
      sleep 2
    done
    ```
@@ -396,7 +396,7 @@ pytest --cov=shared --cov=ground --cov=satellite
 
 4. Weitere (gültige) Nachricht senden
    ```bash
-   python -m ground.receiver --file examples/telemetry_good.csv
+   python -m control_center.receiver --file examples/telemetry_good.csv
    ```
 
 5. Routing prüfen
@@ -426,7 +426,7 @@ pytest tests/integration/security/test_mqtt_replay.py -v
 **Test-Logik:**
 1. Gültige Nachricht wird via MQTT gesendet
 2. Identische Nachricht (gleiche msg_id) wird erneut gesendet
-3. Ground erkennt Duplicate und dropped
+3. Leitstand erkennt Duplikat und verwirft es
 
 **Erwartetes Ergebnis:**
 - Test: PASS
@@ -444,8 +444,8 @@ pytest tests/integration/security/test_mqtt_replay.py -v
 **Lösung:**
 ```bash
 pip install -e shared
-pip install -e ground
-pip install -e satellite
+pip install -e control_center
+pip install -e zone_sensor
 ```
 
 ---
@@ -484,13 +484,13 @@ docker compose -f docker-compose.mqtt.yml up -d
 **Prüfen:**
 ```bash
 python --version  # Sollte 3.11.x sein
-pip list | grep cubesat
+pip list | grep warehouse
 ```
 
 **Neu installieren:**
 ```bash
 pip install -r requirements-dev.txt
-pip install -e shared -e ground -e satellite
+pip install -e shared -e control_center -e zone_sensor
 ```
 
 ---
@@ -511,22 +511,22 @@ chmod +x scripts/*.sh
 Nach erfolgreicher Demo:
 
 1. **Logs analysieren**
-   - `logs/satellite.log` — Telemetrie-Erzeugung
-   - `logs/ground.log` — Verarbeitung
+   - `logs/logger.log` — Telemetrie-Erzeugung
+   - `logs/control_center_subscriber.log` — Verarbeitung
    - `logs/security_audit.jsonl` — Security-Events
 
 2. **Konfiguration anpassen**
    - `configs/security_policy.yaml` — Lockout-Schwellwerte
-   - `configs/satellite.json` — Telemetrie-Intervall
-   - `configs/ground.json` — MQTT-Verbindung
+   - `configs/zone_sensor.yaml` — Telemetrie-Intervall
+   - `configs/control_center.json` — MQTT-Verbindung
 
 3. **Hardware-Tests**
    - Raspberry Pi mit BME280 Sensor aufsetzen
-   - `satellite/` Code auf Pi deployen
+   - `zone_sensor/` Code auf Pi deployen
    - Echte Sensorwerte über MQTT senden
 
 4. **Visualisierung**
-   - `ground/src/ground/plot_csv.py` — Telemetrie plotten
+   - `control_center/src/control_center/plot_csv.py` — Telemetrie plotten
    - Grafana-Integration (geplant)
 
 5. **Weiterführende Docs**

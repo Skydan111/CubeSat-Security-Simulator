@@ -1,4 +1,4 @@
-# 🛰️ Mission Report #1 – Phase: Pre-Launch
+# Entwicklungsprotokoll #1 – Phase: Pre-Launch
 
 **Datum:** 2025-11-03
 **Phase:** Pre-Launch (Initial Setup)

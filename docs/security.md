@@ -2,7 +2,7 @@
 
 ## Überblick
 
-Das Sicherheitskonzept des CubeSat-Telemetriesystems schützt die Datenintegrität und -authentizität auf der Kommunikationsstrecke zwischen Satellite und Ground Station.
+Das Sicherheitskonzept des Warehouse Monitors schützt die Datenintegrität und -authentizität auf der Kommunikationsstrecke zwischen Zonensensor und Leitstand.
 
 Der Fokus liegt auf:
 - **Integrität** — Erkennung von Manipulationen am Payload
@@ -30,7 +30,7 @@ Der Fokus liegt auf:
 - Man-in-the-Middle (kein TLS)
 - Side-Channel-Angriffe (z.B. Timing)
 - DoS auf Broker-Ebene
-- Physischer Zugriff auf Satellite/Ground
+- Physischer Zugriff auf Zonensensor/Leitstand
 
 ---
 
@@ -45,14 +45,14 @@ Der Fokus liegt auf:
 - Länge: empfohlen ≥ 32 Bytes (256 Bit)
 - Verteilung: manuell (Demo), später: Key Management Service
 
-**Signatur-Erzeugung (Satellite):**
+**Signatur-Erzeugung (Zonensensor):**
 ```python
 payload = "ts,temp,hum,press,mode"
 signature = hmac.new(key=secret, msg=payload.encode(), digestmod=hashlib.sha256).hexdigest()
 # Ausgabe: 64 Hex-Zeichen
 ```
 
-**Signatur-Verifikation (Ground):**
+**Signatur-Verifikation (Leitstand):**
 ```python
 expected_sig = hmac.new(key=secret, msg=payload.encode(), digestmod=hashlib.sha256).hexdigest()
 is_valid = hmac.compare_digest(received_sig, expected_sig)  # Constant-time
@@ -111,7 +111,7 @@ if skew > MAX_SKEW_SECONDS:
 - Nachrichten mit Zukunfts-Timestamps (ungültige Uhren)
 
 **Limitierungen:**
-- Erfordert synchronisierte Uhren (NTP auf Satellite + Ground)
+- Erfordert synchronisierte Uhren (NTP auf Zonensensor + Leitstand)
 - Skew-Fenster ist Kompromiss: zu klein → false positives, zu groß → Replay-Fenster
 
 ---
@@ -120,7 +120,7 @@ if skew > MAX_SKEW_SECONDS:
 
 **Mechanismus:**
 - Jede Nachricht hat eindeutige `msg_id` (UUID v4)
-- Ground hält LRU-Cache der letzten N msg_id (z.B. N=500)
+- Der Leitstand hält LRU-Cache der letzten N msg_id (z.B. N=500)
 - Duplicate msg_id → Drop + Audit-Log
 
 **Implementierung:**
@@ -171,7 +171,7 @@ Bei normalem Betrieb sind gelegentliche fehlerhafte Nachrichten akzeptabel (Netz
 
 **Aber:** Wiederholte, konsistente Fehler deuten auf:
 - Aktiven Angriff (z.B. Brute-Force auf Signatur)
-- Kompromittierte Satellite
+- Kompromittierter Zonensensor
 - Fehlkonfiguration
 
 **Adaptive Security** reagiert dynamisch auf Fehlermuster.
@@ -180,7 +180,7 @@ Bei normalem Betrieb sind gelegentliche fehlerhafte Nachrichten akzeptabel (Netz
 
 ### Gleitendes Zeitfenster
 
-Ground Station hält Ereignisprotokoll der letzten N Sekunden (z.B. 60s):
+Der Leitstand hält Ereignisprotokoll der letzten N Sekunden (z.B. 60s):
 
 ```python
 events = [
@@ -313,7 +313,7 @@ Alle sicherheitsrelevanten Ereignisse werden protokolliert:
 ### Machine-Readable Log (`logs/security_audit.jsonl`)
 
 ```json
-{"ts": "2026-02-25T15:20:05Z", "event": "invalid_signature", "msg_id": "abc123", "sat_id": "SAT-001"}
+{"ts": "2026-02-25T15:20:05Z", "event": "invalid_signature", "msg_id": "abc123", "zone_id": "ZONE-01"}
 {"ts": "2026-02-25T15:20:12Z", "event": "lockout_triggered", "reason": "consecutive_fails", "count": 5}
 ```
 
@@ -406,11 +406,11 @@ Sicherheitseigenschaften werden in `tests/integration/security/` geprüft:
 ### Mittelfristig
 
 4. **mTLS (Mutual TLS)**
-   - Client-Zertifikate für Satellite
+   - Client-Zertifikate für Zonensensoren
    - Broker prüft Client-Identität
 
 5. **Rate Limiting**
-   - Broker-seitige Limits pro sat_id
+   - Broker-seitige Limits pro zone_id
    - Schutz vor Flooding
 
 6. **Key Rotation**

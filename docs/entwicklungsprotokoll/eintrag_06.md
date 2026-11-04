@@ -1,4 +1,4 @@
-# 🛰️ Mission Report #6 – Secure Telemetry Pipeline Stabilization
+# Entwicklungsprotokoll #6 – Secure Telemetry Pipeline Stabilization
 **Datum:** 2025-11-06
 **Status:** ✅ Abgeschlossen
 **Phase:** 📡 Datenfluss & Verifikations-Pipeline
